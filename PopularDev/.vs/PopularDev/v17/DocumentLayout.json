@@ -1,0 +1,576 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\DATA\\docs\\PopularDev\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\api\\controllers\\userdetailscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\api\\controllers\\userdetailscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\interfaces\\iuserdetailsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\interfaces\\iuserdetailsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\services\\userdetailsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\services\\userdetailsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\services\\userloginservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\services\\userloginservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\infrastructure\\repositories\\userdetailsrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\infrastructure\\repositories\\userdetailsrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\domain\\interfaces\\iuserdetailsrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\domain\\interfaces\\iuserdetailsrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\infrastructure\\repositories\\userloginrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\infrastructure\\repositories\\userloginrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\dtos\\detail\\userdetailsresponsedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\dtos\\detail\\userdetailsresponsedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\dtos\\detail\\userdetailsrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\dtos\\detail\\userdetailsrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\dtos\\auth\\registerrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\dtos\\auth\\registerrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\dtos\\auth\\loginrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\dtos\\auth\\loginrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\domain\\entities\\userslogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\domain\\entities\\userslogin.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\domain\\entities\\userdetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\domain\\entities\\userdetails.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\interfaces\\iusersloginservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\interfaces\\iusersloginservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\domain\\interfaces\\iusersloginrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\domain\\interfaces\\iusersloginrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\populardev.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\populardev.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\infrastructure\\persistence\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\infrastructure\\persistence\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\infrastructure\\persistence\\appdbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\infrastructure\\persistence\\appdbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\validators\\loginrequestvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\validators\\loginrequestvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\application\\validators\\registerrequestvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\application\\validators\\registerrequestvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|d:\\data\\docs\\populardev\\populardev\\migrations\\20251203090721_initialcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF3E98D8-F7B1-4A3A-AFE4-A32DCBD3B594}|PopularDev\\PopularDev.csproj|solutionrelative:populardev\\migrations\\20251203090721_initialcreate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 34,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{0ad07096-bba9-4900-a651-0598d26f6d24}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:132:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:136:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:137:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:138:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:139:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:141:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:140:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:142:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:143:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:142:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:140:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:136:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:137:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:138:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:254354193:0:{71f361cc-493f-47c0-923f-f2570b6f8618}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:132:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "IUserDetailsService.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Interfaces\\IUserDetailsService.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\Interfaces\\IUserDetailsService.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Interfaces\\IUserDetailsService.cs",
+              "RelativeToolTip": "PopularDev\\Application\\Interfaces\\IUserDetailsService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T12:14:50.605Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "IUserDetailsRepository.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Domain\\Interfaces\\IUserDetailsRepository.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Domain\\Interfaces\\IUserDetailsRepository.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Domain\\Interfaces\\IUserDetailsRepository.cs",
+              "RelativeToolTip": "PopularDev\\Domain\\Interfaces\\IUserDetailsRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T12:17:21.483Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "UserDetailsService.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Services\\UserDetailsService.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\Services\\UserDetailsService.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Services\\UserDetailsService.cs",
+              "RelativeToolTip": "PopularDev\\Application\\Services\\UserDetailsService.cs",
+              "ViewState": "AgIAAF4AAAAAAAAAAAAYwIAAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T12:15:36.101Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "UserDetailsController.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\API\\Controllers\\UserDetailsController.cs",
+              "RelativeDocumentMoniker": "PopularDev\\API\\Controllers\\UserDetailsController.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\API\\Controllers\\UserDetailsController.cs",
+              "RelativeToolTip": "PopularDev\\API\\Controllers\\UserDetailsController.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAAAQwC0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T12:18:36.517Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "UserLoginService.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Services\\UserLoginService.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\Services\\UserLoginService.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Services\\UserLoginService.cs",
+              "RelativeToolTip": "PopularDev\\Application\\Services\\UserLoginService.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAIAywDYAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-02T09:04:47.376Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "UserDetailsRepository.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Infrastructure\\Repositories\\UserDetailsRepository.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Infrastructure\\Repositories\\UserDetailsRepository.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Infrastructure\\Repositories\\UserDetailsRepository.cs",
+              "RelativeToolTip": "PopularDev\\Infrastructure\\Repositories\\UserDetailsRepository.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAA/wC0AAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T12:17:47.676Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\API\\Program.cs",
+              "RelativeDocumentMoniker": "PopularDev\\API\\Program.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\API\\Program.cs",
+              "RelativeToolTip": "PopularDev\\API\\Program.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAAACQAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-02T08:55:25.022Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "UserDetailsResponseDto.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\DTOs\\Detail\\UserDetailsResponseDto.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\DTOs\\Detail\\UserDetailsResponseDto.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\DTOs\\Detail\\UserDetailsResponseDto.cs",
+              "RelativeToolTip": "PopularDev\\Application\\DTOs\\Detail\\UserDetailsResponseDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T12:00:29.074Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "UserDetailsRequestDto.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\DTOs\\Detail\\UserDetailsRequestDto.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\DTOs\\Detail\\UserDetailsRequestDto.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\DTOs\\Detail\\UserDetailsRequestDto.cs",
+              "RelativeToolTip": "PopularDev\\Application\\DTOs\\Detail\\UserDetailsRequestDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T12:00:13.997Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\API\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "PopularDev\\API\\Controllers\\AuthController.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\API\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "PopularDev\\API\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAIAywCMAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-02T11:30:44.531Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "UserLoginRepository.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Infrastructure\\Repositories\\UserLoginRepository.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Infrastructure\\Repositories\\UserLoginRepository.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Infrastructure\\Repositories\\UserLoginRepository.cs",
+              "RelativeToolTip": "PopularDev\\Infrastructure\\Repositories\\UserLoginRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-02T07:20:51.776Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "RegisterRequestDto.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\DTOs\\Auth\\RegisterRequestDto.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\DTOs\\Auth\\RegisterRequestDto.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\DTOs\\Auth\\RegisterRequestDto.cs",
+              "RelativeToolTip": "PopularDev\\Application\\DTOs\\Auth\\RegisterRequestDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T06:02:26.268Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "LoginRequestDto.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\DTOs\\Auth\\LoginRequestDto.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\DTOs\\Auth\\LoginRequestDto.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\DTOs\\Auth\\LoginRequestDto.cs",
+              "RelativeToolTip": "PopularDev\\Application\\DTOs\\Auth\\LoginRequestDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T06:03:04.787Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "UsersLogin.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Domain\\Entities\\UsersLogin.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Domain\\Entities\\UsersLogin.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Domain\\Entities\\UsersLogin.cs",
+              "RelativeToolTip": "PopularDev\\Domain\\Entities\\UsersLogin.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T09:02:53.461Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "UserDetails.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Domain\\Entities\\UserDetails.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Domain\\Entities\\UserDetails.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Domain\\Entities\\UserDetails.cs",
+              "RelativeToolTip": "PopularDev\\Domain\\Entities\\UserDetails.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-02T05:36:43.44Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "IUsersLoginRepository.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Domain\\Interfaces\\IUsersLoginRepository.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Domain\\Interfaces\\IUsersLoginRepository.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Domain\\Interfaces\\IUsersLoginRepository.cs",
+              "RelativeToolTip": "PopularDev\\Domain\\Interfaces\\IUsersLoginRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAkAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-02T06:51:30.413Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "IUsersLoginService.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Interfaces\\IUsersLoginService.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\Interfaces\\IUsersLoginService.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Interfaces\\IUsersLoginService.cs",
+              "RelativeToolTip": "PopularDev\\Application\\Interfaces\\IUsersLoginService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-02T09:03:27.325Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "PopularDev.csproj",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\PopularDev.csproj",
+              "RelativeDocumentMoniker": "PopularDev\\PopularDev.csproj",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\PopularDev.csproj",
+              "RelativeToolTip": "PopularDev\\PopularDev.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-12-03T09:57:43.392Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "AppDbContext.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Infrastructure\\Persistence\\AppDbContext.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Infrastructure\\Persistence\\AppDbContext.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Infrastructure\\Persistence\\AppDbContext.cs",
+              "RelativeToolTip": "PopularDev\\Infrastructure\\Persistence\\AppDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-02T05:39:53.382Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "AppDbContextFactory.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Infrastructure\\Persistence\\AppDbContextFactory.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Infrastructure\\Persistence\\AppDbContextFactory.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Infrastructure\\Persistence\\AppDbContextFactory.cs",
+              "RelativeToolTip": "PopularDev\\Infrastructure\\Persistence\\AppDbContextFactory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAABNAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T08:59:57.478Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "LoginRequestValidator.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Validators\\LoginRequestValidator.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\Validators\\LoginRequestValidator.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Validators\\LoginRequestValidator.cs",
+              "RelativeToolTip": "PopularDev\\Application\\Validators\\LoginRequestValidator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T06:09:01.95Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "RegisterRequestValidator.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Validators\\RegisterRequestValidator.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Application\\Validators\\RegisterRequestValidator.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Application\\Validators\\RegisterRequestValidator.cs",
+              "RelativeToolTip": "PopularDev\\Application\\Validators\\RegisterRequestValidator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAABMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T06:08:48.31Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "PopularDev\\appsettings.Development.json",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\appsettings.Development.json",
+              "RelativeToolTip": "PopularDev\\appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-12-03T10:00:40.38Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "20251203090721_InitialCreate.cs",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Migrations\\20251203090721_InitialCreate.cs",
+              "RelativeDocumentMoniker": "PopularDev\\Migrations\\20251203090721_InitialCreate.cs",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Migrations\\20251203090721_InitialCreate.cs",
+              "RelativeToolTip": "PopularDev\\Migrations\\20251203090721_InitialCreate.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T09:07:22.688Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\appsettings.json",
+              "RelativeDocumentMoniker": "PopularDev\\appsettings.json",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\appsettings.json",
+              "RelativeToolTip": "PopularDev\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-12-03T10:00:09.282Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "PopularDev\\Properties\\launchSettings.json",
+              "ToolTip": "D:\\DATA\\docs\\PopularDev\\PopularDev\\Properties\\launchSettings.json",
+              "RelativeToolTip": "PopularDev\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-12-03T09:12:36.365Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
