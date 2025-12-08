@@ -15,7 +15,6 @@ import {
   Monitor,
   MapPin,
   Building,
-  CalendarDays,
 } from "lucide-react";
 import { authService, userDetailsService } from "./api/apiService";
 
@@ -43,21 +42,6 @@ const App = () => {
   const [error, setError] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
-
-  // Leave records state
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [leaveRecords, setLeaveRecords] = useState([
-    { id: 1, name: "John Doe", leaves: 12, appliedLeaves: 3 },
-    { id: 2, name: "Jane Smith", leaves: 10, appliedLeaves: 4 },
-  ]);
-
-  const [editingLeaveId, setEditingLeaveId] = useState(null);
-  const [editingLeaveData, setEditingLeaveData] = useState({
-    name: "",
-    leaves: 0,
-    appliedLeaves: 0,
-  });
-
 
   // Auth form state
   const [authForm, setAuthForm] = useState({
@@ -280,30 +264,30 @@ const App = () => {
     setEditingDetails(true);
     setCurrentPage("add-edit");
   };
-  const [editUserEmail, setEditUserEmail] = useState("");
-  const handleEditAllDetails = (user) => {
-    if (user) {
-      setEditUserEmail(user.email);  // <-- important line
+const [editUserEmail, setEditUserEmail] = useState(""); 
+const handleEditAllDetails = (user) => {
+  if (user) {
+    setEditUserEmail(user.email);  // <-- important line
 
-      setFormData({
-        email: user.email || "",
-        name: user.name || "",
-        empId: user.empId || "",
-        machineIpAddress: user.machineIpAddress || "",
-        deviceHostName: user.deviceHostName || "",
-        clientVpnUsername: user.clientVpnUsername || "",
-        assetId: user.assetId || "",
-        contactNo: user.contactNo || "",
-        bitLockerPassword: user.bitLockerPassword || "",
-        location: user.location || "",
-        vdiPhysicalMachineLocation: user.vdiPhysicalMachineLocation || "",
-        hwfhPwfH: user.hwfhPwfH || "",
-      });
-    }
+    setFormData({
+      email: user.email || "",
+      name: user.name || "",
+      empId: user.empId || "",
+      machineIpAddress: user.machineIpAddress || "",
+      deviceHostName: user.deviceHostName || "",
+      clientVpnUsername: user.clientVpnUsername || "",
+      assetId: user.assetId || "",
+      contactNo: user.contactNo || "",
+      bitLockerPassword: user.bitLockerPassword || "",
+      location: user.location || "",
+      vdiPhysicalMachineLocation: user.vdiPhysicalMachineLocation || "",
+      hwfhPwfH: user.hwfhPwfH || "",
+    });
+  }
 
-    setEditingDetails(true);
-    setCurrentPage("add-edit");
-  };
+  setEditingDetails(true);
+  setCurrentPage("add-edit");
+};
 
 
 
@@ -489,7 +473,7 @@ const App = () => {
               { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
               { id: "add-edit", icon: FileEdit, label: "My Details" },
               { id: "all-details", icon: List, label: "All User Details" },
-              { id: "leave-records", icon: CalendarDays, label: "Leave Records" },
+              { id: "leave-records", icon: Selection, label:"Leave Records"}
             ].map((item) => (
               <button
                 key={item.id}
@@ -614,439 +598,268 @@ const App = () => {
                   </div>
                 )}
 
-                {currentPage === "leave-records" && (
+                {currentPage === "add-edit" && (
                   <div className="animate-fadeIn">
-                    <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">
-                      Leave Records
+                    <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">
+                      {currentUserDetails ? "Edit My Details" : "Add My Details"}
                     </h1>
+                    <div className="bg-white rounded-2xl shadow-lg p-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="Enter your name"
+                          />
+                        </div>
 
-                    {/* Month dropdown */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Select Month
-                      </label>
-                      <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="border rounded-lg px-3 py-2 w-64"
-                      >
-                        <option value="">-- Choose month --</option>
-                        <option value="jan">January</option>
-                        <option value="feb">February</option>
-                        <option value="mar">March</option>
-                        <option value="apr">April</option>
-                        <option value="may">May</option>
-                        <option value="jun">June</option>
-                        <option value="jul">July</option>
-                        <option value="aug">August</option>
-                        <option value="sep">September</option>
-                        <option value="oct">October</option>
-                        <option value="nov">November</option>
-                        <option value="dec">December</option>
-                      </select>
-                    </div>
-                    {selectedMonth && (
-                      <div className="bg-white rounded-2xl shadow-lg p-6">
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead>
-                            <tr className="bg-gray-50">
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Name
-                              </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Leaves
-                              </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Applied Leaves
-                              </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Remaining Leaves
-                              </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                              </th>
-                            </tr>
-                          </thead>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Employee ID</label>
+                          <input
+                            type="number"
+                            value={formData.empId}
+                            onChange={(e) => setFormData({ ...formData, empId: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="Enter employee ID"
+                          />
+                        </div>
 
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {leaveRecords.map((rec) => {
-                              const remaining = rec.leaves - rec.appliedLeaves;
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Machine IP Address</label>
+                          <input
+                            type="text"
+                            value={formData.machineIpAddress}
+                            onChange={(e) => setFormData({ ...formData, machineIpAddress: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="e.g., 192.168.1.100"
+                          />
+                        </div>
 
-                              const isEditing = editingLeaveId === rec.id;
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Device Hostname</label>
+                          <input
+                            type="text"
+                            value={formData.deviceHostName}
+                            onChange={(e) => setFormData({ ...formData, deviceHostName: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="Enter device hostname"
+                          />
+                        </div>
 
-                              if (isEditing) {
-                                return (
-                                  <tr key={rec.id}>
-                                    <td className="px-4 py-2">
-                                      <input
-                                        className="border rounded px-2 py-1 w-full"
-                                        value={editingLeaveData.name}
-                                        onChange={(e) =>
-                                          setEditingLeaveData((prev) => ({
-                                            ...prev,
-                                            name: e.target.value,
-                                          }))
-                                        }
-                                      />
-                                    </td>
-                                    <td className="px-4 py-2">
-                                      <input
-                                        type="number"
-                                        className="border rounded px-2 py-1 w-24"
-                                        value={editingLeaveData.leaves}
-                                        onChange={(e) =>
-                                          setEditingLeaveData((prev) => ({
-                                            ...prev,
-                                            leaves: Number(e.target.value),
-                                          }))
-                                        }
-                                      />
-                                    </td>
-                                    <td className="px-4 py-2">
-                                      <input
-                                        type="number"
-                                        className="border rounded px-2 py-1 w-24"
-                                        value={editingLeaveData.appliedLeaves}
-                                        onChange={(e) =>
-                                          setEditingLeaveData((prev) => ({
-                                            ...prev,
-                                            appliedLeaves: Number(e.target.value),
-                                          }))
-                                        }
-                                      />
-                                    </td>
-                                    <td className="px-4 py-2">
-                                      {editingLeaveData.leaves - editingLeaveData.appliedLeaves}
-                                    </td>
-                                    <td className="px-4 py-2 space-x-2">
-                                      <button
-                                        className="px-3 py-1 text-sm rounded bg-green-600 text-white"
-                                        onClick={() => {
-                                          setLeaveRecords((prev) =>
-                                            prev.map((r) =>
-                                              r.id === rec.id ? { ...r, ...editingLeaveData } : r
-                                            )
-                                          );
-                                          setEditingLeaveId(null);
-                                        }}
-                                      >
-                                        Save
-                                      </button>
-                                      <button
-                                        className="px-3 py-1 text-sm rounded bg-gray-300 text-gray-800"
-                                        onClick={() => setEditingLeaveId(null)}
-                                      >
-                                        Cancel
-                                      </button>
-                                    </td>
-                                  </tr>
-                                );
-                              }
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Client VPN Username</label>
+                          <input
+                            type="text"
+                            value={formData.clientVpnUsername}
+                            onChange={(e) => setFormData({ ...formData, clientVpnUsername: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="Enter VPN username"
+                          />
+                        </div>
 
-                              return (
-                                <tr key={rec.id}>
-                                  <td className="px-4 py-2">{rec.name}</td>
-                                  <td className="px-4 py-2">{rec.leaves}</td>
-                                  <td className="px-4 py-2">{rec.appliedLeaves}</td>
-                                  <td className="px-4 py-2">{remaining}</td>
-                                  <td className="px-4 py-2">
-                                    <button
-                                      className="px-3 py-1 text-sm rounded bg-purple-600 text-white"
-                                      onClick={() => {
-                                        setEditingLeaveId(rec.id);
-                                        setEditingLeaveData({
-                                          name: rec.name,
-                                          leaves: rec.leaves,
-                                          appliedLeaves: rec.appliedLeaves,
-                                        });
-                                      }}
-                                    >
-                                      Edit
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Asset ID</label>
+                          <input
+                            type="text"
+                            value={formData.assetId}
+                            onChange={(e) => setFormData({ ...formData, assetId: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="Enter asset ID"
+                          />
+                        </div>
 
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
+                          <input
+                            type="tel"
+                            value={formData.contactNo}
+                            onChange={(e) => setFormData({ ...formData, contactNo: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="Enter contact number"
+                          />
+                        </div>
 
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">BitLocker Password</label>
+                          <input
+                            type="password"
+                            value={formData.bitLockerPassword}
+                            onChange={(e) => setFormData({ ...formData, bitLockerPassword: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="Enter BitLocker password"
+                          />
+                        </div>
 
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                          <input
+                            type="text"
+                            value={formData.location}
+                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="Enter location"
+                          />
+                        </div>
 
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">VDI Physical Machine Location</label>
+                          <input
+                            type="text"
+                            value={formData.vdiPhysicalMachineLocation}
+                            onChange={(e) => setFormData({ ...formData, vdiPhysicalMachineLocation: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                            placeholder="Enter VDI location"
+                          />
+                        </div>
 
-
-
-
-
-
-
-                    {currentPage === "add-edit" && (
-                      <div className="animate-fadeIn">
-                        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">
-                          {currentUserDetails ? "Edit My Details" : "Add My Details"}
-                        </h1>
-                        <div className="bg-white rounded-2xl shadow-lg p-8">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Name <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="Enter your name"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Employee ID</label>
-                              <input
-                                type="number"
-                                value={formData.empId}
-                                onChange={(e) => setFormData({ ...formData, empId: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="Enter employee ID"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Machine IP Address</label>
-                              <input
-                                type="text"
-                                value={formData.machineIpAddress}
-                                onChange={(e) => setFormData({ ...formData, machineIpAddress: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="e.g., 192.168.1.100"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Device Hostname</label>
-                              <input
-                                type="text"
-                                value={formData.deviceHostName}
-                                onChange={(e) => setFormData({ ...formData, deviceHostName: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="Enter device hostname"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Client VPN Username</label>
-                              <input
-                                type="text"
-                                value={formData.clientVpnUsername}
-                                onChange={(e) => setFormData({ ...formData, clientVpnUsername: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="Enter VPN username"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Asset ID</label>
-                              <input
-                                type="text"
-                                value={formData.assetId}
-                                onChange={(e) => setFormData({ ...formData, assetId: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="Enter asset ID"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
-                              <input
-                                type="tel"
-                                value={formData.contactNo}
-                                onChange={(e) => setFormData({ ...formData, contactNo: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="Enter contact number"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">BitLocker Password</label>
-                              <input
-                                type="password"
-                                value={formData.bitLockerPassword}
-                                onChange={(e) => setFormData({ ...formData, bitLockerPassword: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="Enter BitLocker password"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
-                              <input
-                                type="text"
-                                value={formData.location}
-                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="Enter location"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">VDI Physical Machine Location</label>
-                              <input
-                                type="text"
-                                value={formData.vdiPhysicalMachineLocation}
-                                onChange={(e) => setFormData({ ...formData, vdiPhysicalMachineLocation: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                                placeholder="Enter VDI location"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Work Mode (HWFH/PWFH)</label>
-                              <select
-                                value={formData.hwfhPwfH}
-                                onChange={(e) => setFormData({ ...formData, hwfhPwfH: e.target.value })}
-                                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
-                              >
-                                <option value="">Select Work Mode</option>
-                                <option value="HWFH">HWFH (Hybrid Work From Home)</option>
-                                <option value="PWFH">PWFH (Permanent Work From Home)</option>
-                                <option value="Office">Office</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="mt-8 flex space-x-4">
-                            <button
-                              onClick={handleSaveDetails}
-                              disabled={loading}
-                              className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {loading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                              ) : (
-                                <>
-                                  <Plus className="w-5 h-5" />
-                                  <span>{currentUserDetails ? "Update" : "Save"} Details</span>
-                                </>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => setCurrentPage("dashboard")}
-                              className="px-8 py-3 bg-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-400 transition-all duration-300"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Work Mode (HWFH/PWFH)</label>
+                          <select
+                            value={formData.hwfhPwfH}
+                            onChange={(e) => setFormData({ ...formData, hwfhPwfH: e.target.value })}
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+                          >
+                            <option value="">Select Work Mode</option>
+                            <option value="HWFH">HWFH (Hybrid Work From Home)</option>
+                            <option value="PWFH">PWFH (Permanent Work From Home)</option>
+                            <option value="Office">Office</option>
+                          </select>
                         </div>
                       </div>
-                    )}
 
-                    {currentPage === "all-details" && (
-                      <div className="animate-fadeIn">
-                        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">
-                          All User Details
-                        </h1>
-                        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                      <div className="mt-8 flex space-x-4">
+                        <button
+                          onClick={handleSaveDetails}
+                          disabled={loading}
+                          className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-semibold rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
                           {loading ? (
-                            <div className="flex items-center justify-center h-64">
-                              <Loader2 className="w-12 h-12 animate-spin text-purple-600" />
-                            </div>
-                          ) : allUserDetails.length === 0 ? (
-                            <div className="p-12 text-center">
-                              <p className="text-gray-500 text-lg">No user details found</p>
-                            </div>
+                            <Loader2 className="w-5 h-5 animate-spin" />
                           ) : (
-                            <div className="overflow-x-auto">
-                              <table className="w-full">
-                                <thead className="bg-gradient-to-r from-purple-600 to-cyan-600 text-white">
-                                  <tr>
-                                    <th className="px-6 py-4 text-left font-semibold">Email</th>
-                                    <th className="px-6 py-4 text-left font-semibold">Name</th>
-                                    <th className="px-6 py-4 text-left font-semibold">Emp ID</th>
-                                    <th className="px-6 py-4 text-left font-semibold">IP Address</th>
-                                    <th className="px-6 py-4 text-left font-semibold">Location</th>
-                                    <th className="px-6 py-4 text-left font-semibold">Work Mode</th>
-                                    <th className="px-6 py-4 text-center font-semibold">Edit</th>
-                                    <th className="px-6 py-4 text-center font-semibold">Delete</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {allUserDetails.map((user, idx) => (
-                                    <tr key={idx} className={`border-b hover:bg-gray-50 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
-                                      <td className="px-6 py-4 font-medium text-gray-800">{user.email}</td>
-                                      <td className="px-6 py-4 text-gray-700">{user.name || "-"}</td>
-                                      <td className="px-6 py-4 text-gray-700">{user.empId || "-"}</td>
-                                      <td className="px-6 py-4 text-gray-700">{user.machineIpAddress || "-"}</td>
-                                      <td className="px-6 py-4 text-gray-700">{user.location || "-"}</td>
-                                      <td className="px-6 py-4">
-                                        <span
-                                          className={`px-3 py-1 rounded-full text-sm font-medium ${user.hwfhPwfH === "HWFH"
-                                            ? "bg-blue-100 text-blue-700"
-                                            : user.hwfhPwfH === "PWFH"
-                                              ? "bg-green-100 text-green-700"
-                                              : user.hwfhPwfH === "Office"
-                                                ? "bg-purple-100 text-purple-700"
-                                                : "bg-gray-100 text-gray-700"
-                                            }`}
-                                        >
-                                          {user.hwfhPwfH || "-"}
-                                        </span>
-                                      </td>
-                                      <td className="px-6 py-4">
-                                        <div className="flex items-center justify-center space-x-2">
-
-                                          {/* ✏ Edit Button */}
-                                          <button
-                                            onClick={() => handleEditAllDetails(user)}
-                                            className="p-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors"
-                                            title="Edit"
-                                          >
-                                            <svg
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="w-4 h-4"
-                                              fill="none"
-                                              viewBox="0 0 24 24"
-                                              stroke="currentColor"
-                                            >
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M11 5h2m-1-1v2m-1 8h2m-1-1v2m-1-8h2m-1-1v2M4 17v2h2l11-11c.78-.78.78-2.05 0-2.83l-1.17-1.17c-.78-.78-2.05-.78-2.83 0L4 14z"
-                                              />
-                                            </svg>
-                                          </button>
-
-                                        </div>
-                                      </td>
-                                      <td className="px-6 py-4">
-                                        <div className="flex items-center justify-center space-x-2">
-                                          <button
-                                            onClick={() => handleDeleteUser(user.email)}
-                                            disabled={loading || user.email === userEmail}
-                                            className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title={user.email === userEmail ? "Cannot delete your own account" : "Delete"}
-                                          >
-                                            <Trash2 className="w-4 h-4" />
-                                          </button>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
+                            <>
+                              <Plus className="w-5 h-5" />
+                              <span>{currentUserDetails ? "Update" : "Save"} Details</span>
+                            </>
                           )}
-                        </div>
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage("dashboard")}
+                          className="px-8 py-3 bg-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-400 transition-all duration-300"
+                        >
+                          Cancel
+                        </button>
                       </div>
-                    )}
-
-                  </>
-
+                    </div>
+                  </div>
                 )}
 
-              </div>
+                {currentPage === "all-details" && (
+                  <div className="animate-fadeIn">
+                    <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">
+                      All User Details
+                    </h1>
+                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                      {loading ? (
+                        <div className="flex items-center justify-center h-64">
+                          <Loader2 className="w-12 h-12 animate-spin text-purple-600" />
+                        </div>
+                      ) : allUserDetails.length === 0 ? (
+                        <div className="p-12 text-center">
+                          <p className="text-gray-500 text-lg">No user details found</p>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-gradient-to-r from-purple-600 to-cyan-600 text-white">
+                              <tr>
+                                <th className="px-6 py-4 text-left font-semibold">Email</th>
+                                <th className="px-6 py-4 text-left font-semibold">Name</th>
+                                <th className="px-6 py-4 text-left font-semibold">Emp ID</th>
+                                <th className="px-6 py-4 text-left font-semibold">IP Address</th>
+                                <th className="px-6 py-4 text-left font-semibold">Location</th>
+                                <th className="px-6 py-4 text-left font-semibold">Work Mode</th>
+                                <th className="px-6 py-4 text-center font-semibold">Edit</th>
+                                <th className="px-6 py-4 text-center font-semibold">Delete</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {allUserDetails.map((user, idx) => (
+                                <tr key={idx} className={`border-b hover:bg-gray-50 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
+                                  <td className="px-6 py-4 font-medium text-gray-800">{user.email}</td>
+                                  <td className="px-6 py-4 text-gray-700">{user.name || "-"}</td>
+                                  <td className="px-6 py-4 text-gray-700">{user.empId || "-"}</td>
+                                  <td className="px-6 py-4 text-gray-700">{user.machineIpAddress || "-"}</td>
+                                  <td className="px-6 py-4 text-gray-700">{user.location || "-"}</td>
+                                  <td className="px-6 py-4">
+                                    <span
+                                      className={`px-3 py-1 rounded-full text-sm font-medium ${user.hwfhPwfH === "HWFH"
+                                          ? "bg-blue-100 text-blue-700"
+                                          : user.hwfhPwfH === "PWFH"
+                                            ? "bg-green-100 text-green-700"
+                                            : user.hwfhPwfH === "Office"
+                                              ? "bg-purple-100 text-purple-700"
+                                              : "bg-gray-100 text-gray-700"
+                                        }`}
+                                    >
+                                      {user.hwfhPwfH || "-"}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center justify-center space-x-2">
+
+                                      {/* ✏ Edit Button */}
+                                      <button
+                                        onClick={() => handleEditAllDetails(user)}
+                                        className="p-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors"
+                                        title="Edit"
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="w-4 h-4"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M11 5h2m-1-1v2m-1 8h2m-1-1v2m-1-8h2m-1-1v2M4 17v2h2l11-11c.78-.78.78-2.05 0-2.83l-1.17-1.17c-.78-.78-2.05-.78-2.83 0L4 14z"
+                                          />
+                                        </svg>
+                                      </button>
+
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center justify-center space-x-2">
+                                      <button
+                                        onClick={() => handleDeleteUser(user.email)}
+                                        disabled={loading || user.email === userEmail}
+                                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title={user.email === userEmail ? "Cannot delete your own account" : "Delete"}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+              </>
+            )}
           </div>
         </main>
       </div>
