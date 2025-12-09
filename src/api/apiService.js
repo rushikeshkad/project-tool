@@ -1,75 +1,74 @@
+//Adjust the endpoint paths (/auth/login, /userdetails, /leaves, etc.) to match your actual backend
+
 // src/api/apiService.js
 import api from "./apiConfig";
 
-/*
-  This example assumes your backend provides something like:
-
-  POST   /auth/login
-  POST   /auth/register
-  POST   /auth/logout
-
-  GET    /user-details/:email
-  GET    /user-details
-  PUT    /user-details/self          // update own details
-  PUT    /user-details/:email        // admin updates any user
-  DELETE /user-details/:email
-
-  If your routes differ, just change the strings below.
-*/
-
+// ---------- AUTH ----------
 export const authService = {
   async login(email, password) {
-    const { data } = await api.post("/auth/login", { email, password });
-    // e.g. data = { email, name, token, ... }
-    return data;
+    const response = await api.post("/auth/login", { email, password });
+    // adjust according to your backend response shape
+    return response.data;
   },
 
   async register(name, email, password, confirmPassword) {
-    const { data } = await api.post("/auth/register", {
+    const response = await api.post("/auth/register", {
       name,
       email,
       password,
       confirmPassword,
     });
-    return data;
+    return response.data;
   },
 
   async logout() {
-    // if your backend needs a body or different route, adjust here
     await api.post("/auth/logout");
   },
 };
 
+// ---------- USER DETAILS ----------
 export const userDetailsService = {
   async getByEmail(email) {
-    const { data } = await api.get(
-      `/user-details/${encodeURIComponent(email)}`
-    );
-    return data;
+    const response = await api.get(`/userdetails/${encodeURIComponent(email)}`);
+    return response.data;
   },
 
   async getAll() {
-    const { data } = await api.get("/user-details");
-    return data;
+    const response = await api.get("/userdetails");
+    return response.data;
   },
 
-  // current logged-in user updates their own details
   async updateSelf(details) {
-    const { data } = await api.put("/user-details/self", details);
-    return data;
+    const response = await api.put("/userdetails/self", details);
+    return response.data;
   },
 
-  // admin updates another user's details
   async updateAdmin(email, details) {
-    const { data } = await api.put(
-      `/user-details/${encodeURIComponent(email)}`,
+    const response = await api.put(
+      `/userdetails/admin/${encodeURIComponent(email)}`,
       details
     );
-    return data;
+    return response.data;
   },
 
   async delete(email) {
-    // returns axios response; caller usually doesn't need the body
-    return api.delete(`/user-details/${encodeURIComponent(email)}`);
+    const response = await api.delete(
+      `/userdetails/${encodeURIComponent(email)}`
+    );
+    return response.data;
+  },
+};
+
+// ---------- LEAVE SERVICE ----------
+export const leaveService = {
+  // year = "2025", month = "03" etc.
+  async getByYearMonth(year, month) {
+    const response = await api.get("/leaves", {
+      params: {
+        year,
+        month, // backend should accept "01".."12" or convert as needed
+      },
+    });
+    return response.data; // expected: array of leave records
   },
 };
