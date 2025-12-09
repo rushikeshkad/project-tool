@@ -1,8 +1,8 @@
 // src/App.jsx
 import React, { useState, useEffect } from "react";
-import { authService, userDetailsService, leaveService } from "./api/apiService";
+import { authService, userDetailsService } from "./api/apiService";
 import Navbar from "./components/layout/Navbar";
-import Sidebar from "./components/layout/Sidebar"
+import Sidebar from "./components/layout/Sidebar";
 import AuthScreen from "./components/auth/AuthScreen.jsx";
 import DashboardPage from "./pages/DashboardPage";
 import LeaveRecordsPage from "./pages/LeaveRecordsPage";
@@ -39,9 +39,11 @@ const App = () => {
   const [editUserEmail, setEditUserEmail] = useState("");
 
   // Leave records
-  const [selectedYear, setSelectedYear] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
-  const [leaveRecords, setLeaveRecords] = useState([]);
+  const [leaveRecords, setLeaveRecords] = useState([
+    { id: 1, name: "John Doe", leaves: 12, appliedLeaves: 3 },
+    { id: 2, name: "Jane Smith", leaves: 10, appliedLeaves: 4 },
+  ]);
   const [editingLeaveId, setEditingLeaveId] = useState(null);
   const [editingLeaveData, setEditingLeaveData] = useState({
     name: "",
@@ -75,37 +77,6 @@ const App = () => {
       fetchAllUserDetails();
     }
   }, [isAuthenticated, currentPage]);
-
-  // 🔁 Fetch leave records whenever year + month change
-  useEffect(() => {
-    // Only fetch if user is logged in and both year & month are chosen
-    if (!isAuthenticated || !selectedYear || !selectedMonth) return;
-
-    const fetchLeaves = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const data = await leaveService.getByYearMonth(
-          selectedYear,
-          selectedMonth
-        );
-        // Expecting array like: [{ id, name, year, month, leaves, appliedLeaves }, ...]
-        setLeaveRecords(data);
-      } catch (err) {
-        setError(
-          err.response?.data?.message ||
-            err.response?.data ||
-            err.message ||
-            "Failed to fetch leave records"
-        );
-        console.error("Error fetching leave records:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLeaves();
-  }, [isAuthenticated, selectedYear, selectedMonth]);
 
   const fetchCurrentUserDetails = async (email) => {
     try {
@@ -405,6 +376,7 @@ const App = () => {
           <div className="max-w-6xl mx-auto">
             {loading && currentPage === "dashboard" ? (
               <div className="flex items-center justify-center h-64">
+                {/* simple spinner; DashboardPage also has content */}
                 Loading...
               </div>
             ) : (
@@ -419,10 +391,8 @@ const App = () => {
 
                 {currentPage === "leave-records" && (
                   <LeaveRecordsPage
-                    // selectedYear={selectedYear}
-                    // setSelectedYear={setSelectedYear}
-                    // selectedMonth={selectedMonth}
-                    // setSelectedMonth={setSelectedMonth}
+                    selectedMonth={selectedMonth}
+                    setSelectedMonth={setSelectedMonth}
                     leaveRecords={leaveRecords}
                     editingLeaveId={editingLeaveId}
                     setEditingLeaveId={setEditingLeaveId}
