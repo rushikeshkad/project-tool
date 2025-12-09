@@ -1,74 +1,75 @@
-import api from './apiConfig';
- 
-// Authentication APIs
+// src/api/apiService.js
+import api from "./apiConfig";
+
+/*
+  This example assumes your backend provides something like:
+
+  POST   /auth/login
+  POST   /auth/register
+  POST   /auth/logout
+
+  GET    /user-details/:email
+  GET    /user-details
+  PUT    /user-details/self          // update own details
+  PUT    /user-details/:email        // admin updates any user
+  DELETE /user-details/:email
+
+  If your routes differ, just change the strings below.
+*/
+
 export const authService = {
-  login: async (email, password) => {
-    const response = await api.post('/auth/login', {
-      email,
-      password
-    });
-    return response.data;
+  async login(email, password) {
+    const { data } = await api.post("/auth/login", { email, password });
+    // e.g. data = { email, name, token, ... }
+    return data;
   },
-  
-  register: async (name, email, password, confirmPassword) => {
-    const response = await api.post('/auth/register', {
+
+  async register(name, email, password, confirmPassword) {
+    const { data } = await api.post("/auth/register", {
       name,
       email,
       password,
-      confirmPassword
+      confirmPassword,
     });
-    return response.data;
+    return data;
   },
-  
-  logout: async () => {
-    const response = await api.post('/auth/logout');
-    return response.data;
+
+  async logout() {
+    // if your backend needs a body or different route, adjust here
+    await api.post("/auth/logout");
   },
 };
- 
-// User Details APIs
+
 export const userDetailsService = {
-  // Get all user details (admin view)
-  getAll: async () => {
-    const response = await api.get('/userdetails/all');
-    return response.data;
+  async getByEmail(email) {
+    const { data } = await api.get(
+      `/user-details/${encodeURIComponent(email)}`
+    );
+    return data;
   },
-  
-  // Get current user's details by email (from session)
-  getByEmail: async (email) => {
-    const response = await api.get(`/userdetails/${email}`);
-    return response.data;
+
+  async getAll() {
+    const { data } = await api.get("/user-details");
+    return data;
   },
-  
-  // Create new user details
-  create: async (userDetailsData) => {
-    const response = await api.post('/userdetails/add-or-update', userDetailsData);
-    return response.data;
+
+  // current logged-in user updates their own details
+  async updateSelf(details) {
+    const { data } = await api.put("/user-details/self", details);
+    return data;
   },
-  
-  // Update user details by email
-  update: async (email, userDetailsData) => {
-    const response = await api.put(`/userdetails/add-or-update`, userDetailsData);
-    return response.data;
+
+  // admin updates another user's details
+  async updateAdmin(email, details) {
+    const { data } = await api.put(
+      `/user-details/${encodeURIComponent(email)}`,
+      details
+    );
+    return data;
   },
-  
-  // Delete user details
-  delete: async (email) => {
-    const response = await api.delete(`/userdetails/${email}`);
-    return response.data;
-  },
-//update all users
-  update: async(email, userDetailsData) => {
-    const response = await api.put(`/userdetails/admin/${email}`, userDetailsData);
-    return response.data;
-  },
-    
-};
- 
-// Dashboard Statistics API
-export const dashboardService = {
-  getStats: async () => {
-    const response = await api.get('/userdetails/all');
-    return response.data;
+
+  async delete(email) {
+    // returns axios response; caller usually doesn't need the body
+    return api.delete(`/user-details/${encodeURIComponent(email)}`);
   },
 };
