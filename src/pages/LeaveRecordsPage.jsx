@@ -1,13 +1,10 @@
 // src/pages/LeaveRecordsPage.jsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import MonthYearPicker from "../components/layout/MonthYearPicker";
-import { useState } from "react";
 import { mockLeaveRecords } from "../utils/mockData";
 import { leaveService } from "../api/apiService";
 
-
 const LeaveRecordsPage = ({
-
   leaveRecords,
   editingLeaveId,
   setEditingLeaveId,
@@ -15,44 +12,68 @@ const LeaveRecordsPage = ({
   setEditingLeaveData,
   setLeaveRecords,
 }) => {
+  const [selectedM, setSelectedM] = useState("");          // e.g. "2025-03"
+  const [leaveRecordsData, setLeaveRecordsData] = useState([]);
+  const [fetchError, setFetchError] = useState("");
+  const [loadingLeaves, setLoadingLeaves] = useState(false);
 
-    const [selectedM, setSelectedM] = useState("");
-    const [leaveRecordsData, setLeaveRecordsData] = useState([])
- const [month, year] = selectedM.split("-");
- useEffect(async() => {
-    if(month && year){
-        //call BE
-        const response = await leaveService?.getByYearMonth(year, month)
-        response?.data && setLeaveRecordsData(mockLeaveRecords)
+  const [year, month] = selectedM ? selectedM.split("-") : ["", ""];
+
+ 
+  useEffect(() => {
+    // If nothing selected yet, clear data & exit
+    if (!year || !month) {
+      setLeaveRecordsData([]);
+      return;
     }
- }, [selectedM])
-const mockData = mockLeaveRecords;
-console.log(" selectedM ",selectedM)
-console.log("Month year", month,year)
 
-//   const monthInputValue =
-//     selectedYear && selectedMonth
-//       ? `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`
-//       : "";
+    let cancelled = false; // to avoid setting state after unmount
 
-//   const readableLabel =
-//     selectedYear && selectedMonth
-//       ? `${monthNames[Number(selectedMonth) - 1]}, ${selectedYear}`
-//       : "Select Month, Year";
+    const fetchLeaves = async () => {
+      try {
+        setLoadingLeaves(true);
+        setFetchError("");
 
-//   const handleMonthChange = (e) => {
-//     const value = e.target.value; // e.g. "2025-03"
-//     if (!value) {
-//       setSelectedYear("");
-//       setSelectedMonth("");
-//       return;
-//     }
-//     const [year, monthNum] = value.split("-");
-//     setSelectedYear(year);
-//     setSelectedMonth(monthNum);
-//   };
+        const response = await leaveService.getByYearMonth(year, month);
 
-//   const monthYearChosen = selectedYear && selectedMonth;
+        // Depending on your API shape, this might be response.data or response
+        const data = response?.data ?? response ?? [];
+
+        if (!cancelled) {
+          setLeaveRecordsData(data);
+          // also push up to parent if you want parent state in sync
+          setLeaveRecords && setLeaveRecords(data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setFetchError(
+            // err?.response?.data?.message ||
+            //   err?.message ||
+            //   "Failed to fetch leave records"
+          );
+          console.error("Error fetching leave records:", err);
+          
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingLeaves(false);
+        }
+      }
+    };
+
+    fetchLeaves();
+
+    return () => {
+      // cleanup: mark as cancelled so we don't set state on unmounted component
+      cancelled = true;
+    };
+  }, [year, month, setLeaveRecords]);
+
+  // Use API data if present, otherwise fall back to mock data
+  const dataToShow =
+    leaveRecordsData && leaveRecordsData.length > 0
+      ? leaveRecordsData
+      : mockLeaveRecords;
 
   return (
     <div className="animate-fadeIn">
@@ -67,27 +88,19 @@ console.log("Month year", month,year)
         </label>
 
         <div className="relative w-64">
-          {/* Custom visible box (behind) */}
-          {/* <div className="border rounded-lg px-3 py-2 bg-white flex justify-between items-center">
-            <span className="text-gray-700">{readableLabel}</span>
-            <span className="text-gray-500">📅</span>
-          </div> */}
-
-          {/* Invisible/native month input (on top, clickable) */}
-          {/* <input
-            type="month"
-            value={monthInputValue}
-            onChange={handleMonthChange}
-            className="absolute inset-0 opacity-0 cursor-pointer z-10"
-          >
-            </input> */}
-            <MonthYearPicker value={selectedM} onChange={setSelectedM} />
+          <MonthYearPicker value={selectedM} onChange={setSelectedM} />
         </div>
       </div>
 
-       {month && year && (
+      {fetchError && (
+        <p className="text-red-600 mb-4 text-sm">{fetchError}</p>
+      )}
+
+      {year && month && (
         <>
-          {mockData?.length === 0 ? (
+          {loadingLeaves ? (
+            <p className="text-gray-500">Loading leave records…</p>
+          ) : dataToShow.length === 0 ? (
             <p className="text-gray-500">
               No leave records found for this month.
             </p>
@@ -115,11 +128,15 @@ console.log("Month year", month,year)
                 </thead>
 
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {mockData?.map((rec) => {
+                  {dataToShow.map((rec) => {
                     const remaining = rec.leaveBalance - rec.appliedLeaves;
                     const isEditing = editingLeaveId === rec.userId;
 
                     if (isEditing) {
+                      const editedRemaining =
+                        editingLeaveData.leaves -
+                        editingLeaveData.appliedLeaves;
+
                       return (
                         <tr key={rec.userId}>
                           <td className="px-4 py-2">
@@ -161,8 +178,7 @@ console.log("Month year", month,year)
                             />
                           </td>
                           <td className="px-4 py-2">
-                            {editingLeaveData.leaves -
-                              editingLeaveData.appliedLeaves}
+                            {editedRemaining}
                           </td>
                           <td className="px-4 py-2 space-x-2">
                             <button
@@ -170,8 +186,15 @@ console.log("Month year", month,year)
                               onClick={() => {
                                 setLeaveRecords((prev) =>
                                   prev.map((r) =>
-                                    r.id === rec.userId
-                                      ? { ...r, ...editingLeaveData }
+                                    r.userId === rec.userId
+                                      ? {
+                                          ...r,
+                                          userName: editingLeaveData.name,
+                                          leaveBalance:
+                                            editingLeaveData.leaves,
+                                          appliedLeaves:
+                                            editingLeaveData.appliedLeaves,
+                                        }
                                       : r
                                   )
                                 );
@@ -195,8 +218,10 @@ console.log("Month year", month,year)
                       <tr key={rec.userId}>
                         <td className="px-4 py-2">{rec.userName}</td>
                         <td className="px-4 py-2">{rec.leaveBalance}</td>
-                        <td className="px-4 py-2">{rec.appliedLeaves}</td>
-                        <td className="px-4 py-2">{rec.totalLeaves}</td>
+                        <td className="px-4 py-2">
+                          {rec.appliedLeaves}
+                        </td>
+                        <td className="px-4 py-2">{remaining}</td>
                         <td className="px-4 py-2">
                           <button
                             className="px-3 py-1 text-sm rounded bg-purple-600 text-white"
@@ -220,7 +245,7 @@ console.log("Month year", month,year)
             </div>
           )}
         </>
-      )} 
+      )}
     </div>
   );
 };
