@@ -418,18 +418,23 @@ const App = () => {
                 )}
 
                 {currentPage === "leave-records" && (
+                  // <LeaveRecordsPage
+                  //   // selectedYear={selectedYear}
+                  //   // setSelectedYear={setSelectedYear}
+                  //   // selectedMonth={selectedMonth}
+                  //   // setSelectedMonth={setSelectedMonth}
+                  //   leaveRecords={leaveRecords}
+                  //   editingLeaveId={editingLeaveId}
+                  //   setEditingLeaveId={setEditingLeaveId}
+                  //   editingLeaveData={editingLeaveData}
+                  //   setEditingLeaveData={setEditingLeaveData}
+                  //   setLeaveRecords={setLeaveRecords}
+                  // />
                   <LeaveRecordsPage
-                    // selectedYear={selectedYear}
-                    // setSelectedYear={setSelectedYear}
-                    // selectedMonth={selectedMonth}
-                    // setSelectedMonth={setSelectedMonth}
                     leaveRecords={leaveRecords}
-                    editingLeaveId={editingLeaveId}
-                    setEditingLeaveId={setEditingLeaveId}
-                    editingLeaveData={editingLeaveData}
-                    setEditingLeaveData={setEditingLeaveData}
                     setLeaveRecords={setLeaveRecords}
                   />
+
                 )}
 
                 {currentPage === "add-edit" && (

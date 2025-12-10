@@ -71,4 +71,9 @@ export const leaveService = {
     });
     return response.data; // expected: array of leave records
   },
+
+    async update(userId, payload) {
+    const res = await api.put(`/leaves/${userId}`, payload);
+    return res.data;
+  },
 };

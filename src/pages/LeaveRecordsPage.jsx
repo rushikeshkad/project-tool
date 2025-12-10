@@ -1,59 +1,132 @@
 // src/pages/LeaveRecordsPage.jsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import MonthYearPicker from "../components/layout/MonthYearPicker";
-import { useState } from "react";
 import { mockLeaveRecords } from "../utils/mockData";
 import { leaveService } from "../api/apiService";
+import EditLeaveModal from "../components/layout/EditLeaveModal";
 
+const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
+  const [selectedM, setSelectedM] = useState(""); // e.g. "2025-07"
+  const [leaveRecordsData, setLeaveRecordsData] = useState([]);
+  const [fetchError, setFetchError] = useState("");
+  const [loadingLeaves, setLoadingLeaves] = useState(false);
 
-const LeaveRecordsPage = ({
+  // Modal-related state
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [modalError, setModalError] = useState("");
 
-  leaveRecords,
-  editingLeaveId,
-  setEditingLeaveId,
-  editingLeaveData,
-  setEditingLeaveData,
-  setLeaveRecords,
-}) => {
+  // Split "YYYY-MM" into [year, month]
+  const [year, month] = selectedM ? selectedM.split("-") : ["", ""];
 
-    const [selectedM, setSelectedM] = useState("");
-    const [leaveRecordsData, setLeaveRecordsData] = useState([])
- const [month, year] = selectedM.split("-");
- useEffect(async() => {
-    if(month && year){
-        //call BE
-        const response = await leaveService?.getByYearMonth(year, month)
-        response?.data && setLeaveRecordsData(mockLeaveRecords)
+  // ---------------------------------------------------------------------------
+  // Fetch leave records for selected year + month
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!year || !month) {
+      setLeaveRecordsData([]);
+      return;
     }
- }, [selectedM])
-const mockData = mockLeaveRecords;
-console.log(" selectedM ",selectedM)
-console.log("Month year", month,year)
 
-//   const monthInputValue =
-//     selectedYear && selectedMonth
-//       ? `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`
-//       : "";
+    let cancelled = false;
 
-//   const readableLabel =
-//     selectedYear && selectedMonth
-//       ? `${monthNames[Number(selectedMonth) - 1]}, ${selectedYear}`
-//       : "Select Month, Year";
+    const fetchLeaves = async () => {
+      try {
+        setLoadingLeaves(true);
+        setFetchError("");
 
-//   const handleMonthChange = (e) => {
-//     const value = e.target.value; // e.g. "2025-03"
-//     if (!value) {
-//       setSelectedYear("");
-//       setSelectedMonth("");
-//       return;
-//     }
-//     const [year, monthNum] = value.split("-");
-//     setSelectedYear(year);
-//     setSelectedMonth(monthNum);
-//   };
+        const response = await leaveService.getByYearMonth(year, month);
+        const data = response?.data ?? response ?? [];
 
-//   const monthYearChosen = selectedYear && selectedMonth;
+        if (!cancelled) {
+          setLeaveRecordsData(data);
+          // keep parent state in sync if provided
+          setLeaveRecords && setLeaveRecords(data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setFetchError(
+            // err?.response?.data?.message ||
+            //   err?.message ||
+            //   "Failed to fetch leave records"
+          );
+          console.error("Error fetching leave records:", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingLeaves(false);
+        }
+      }
+    };
 
+    fetchLeaves();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [year, month, setLeaveRecords]);
+
+  // Use API data if present, then parent data, otherwise fall back to mock
+  const dataToShow =
+    (leaveRecordsData && leaveRecordsData.length > 0 && leaveRecordsData) ||
+    (leaveRecords && leaveRecords.length > 0 && leaveRecords) ||
+    mockLeaveRecords;
+
+  // ---------------------------------------------------------------------------
+  // Modal handlers
+  // ---------------------------------------------------------------------------
+  const handleEditClick = (rec) => {
+    setModalError("");
+    setEditingRecord(rec);
+  };
+
+  const handleCloseModal = () => {
+    setEditingRecord(null);
+    setModalError("");
+  };
+
+  const handleSaveModal = async (updatedFields) => {
+    if (!editingRecord) return;
+
+    try {
+      setSaving(true);
+      setModalError("");
+
+      // Call backend API
+      await leaveService.update(editingRecord.userId, updatedFields);
+
+      // Update local list (from API or mock) AND parent state
+      const updater = (prev) =>
+        prev.map((item) =>
+          item.userId === editingRecord.userId
+            ? {
+                ...item,
+                userName: updatedFields.name,
+                leaveBalance: updatedFields.leaveBalance,
+                appliedLeaves: updatedFields.appliedLeaves,
+              }
+            : item
+        );
+
+      setLeaveRecordsData((prev) => updater(prev));
+      setLeaveRecords && setLeaveRecords((prev) => updater(prev));
+
+      handleCloseModal();
+    } catch (err) {
+      setModalError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to save leave data"
+      );
+      console.error("Error updating leave record:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
   return (
     <div className="animate-fadeIn">
       <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">
@@ -67,27 +140,19 @@ console.log("Month year", month,year)
         </label>
 
         <div className="relative w-64">
-          {/* Custom visible box (behind) */}
-          {/* <div className="border rounded-lg px-3 py-2 bg-white flex justify-between items-center">
-            <span className="text-gray-700">{readableLabel}</span>
-            <span className="text-gray-500">📅</span>
-          </div> */}
-
-          {/* Invisible/native month input (on top, clickable) */}
-          {/* <input
-            type="month"
-            value={monthInputValue}
-            onChange={handleMonthChange}
-            className="absolute inset-0 opacity-0 cursor-pointer z-10"
-          >
-            </input> */}
-            <MonthYearPicker value={selectedM} onChange={setSelectedM} />
+          <MonthYearPicker value={selectedM} onChange={setSelectedM} />
         </div>
       </div>
 
-       {month && year && (
+      {fetchError && (
+        <p className="text-red-600 mb-4 text-sm">{fetchError}</p>
+      )}
+
+      {year && month && (
         <>
-          {mockData?.length === 0 ? (
+          {loadingLeaves ? (
+            <p className="text-gray-500">Loading leave records…</p>
+          ) : dataToShow.length === 0 ? (
             <p className="text-gray-500">
               No leave records found for this month.
             </p>
@@ -115,99 +180,22 @@ console.log("Month year", month,year)
                 </thead>
 
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {mockData?.map((rec) => {
-                    const remaining = rec.leaveBalance - rec.appliedLeaves;
-                    const isEditing = editingLeaveId === rec.userId;
-
-                    if (isEditing) {
-                      return (
-                        <tr key={rec.userId}>
-                          <td className="px-4 py-2">
-                            <input
-                              className="border rounded px-2 py-1 w-full"
-                              value={editingLeaveData.name}
-                              onChange={(e) =>
-                                setEditingLeaveData((prev) => ({
-                                  ...prev,
-                                  name: e.target.value,
-                                }))
-                              }
-                            />
-                          </td>
-                          <td className="px-4 py-2">
-                            <input
-                              type="number"
-                              className="border rounded px-2 py-1 w-24"
-                              value={editingLeaveData.leaves}
-                              onChange={(e) =>
-                                setEditingLeaveData((prev) => ({
-                                  ...prev,
-                                  leaves: Number(e.target.value),
-                                }))
-                              }
-                            />
-                          </td>
-                          <td className="px-4 py-2">
-                            <input
-                              type="number"
-                              className="border rounded px-2 py-1 w-24"
-                              value={editingLeaveData.appliedLeaves}
-                              onChange={(e) =>
-                                setEditingLeaveData((prev) => ({
-                                  ...prev,
-                                  appliedLeaves: Number(e.target.value),
-                                }))
-                              }
-                            />
-                          </td>
-                          <td className="px-4 py-2">
-                            {editingLeaveData.leaves -
-                              editingLeaveData.appliedLeaves}
-                          </td>
-                          <td className="px-4 py-2 space-x-2">
-                            <button
-                              className="px-3 py-1 text-sm rounded bg-green-600 text-white"
-                              onClick={() => {
-                                setLeaveRecords((prev) =>
-                                  prev.map((r) =>
-                                    r.id === rec.userId
-                                      ? { ...r, ...editingLeaveData }
-                                      : r
-                                  )
-                                );
-                                setEditingLeaveId(null);
-                              }}
-                            >
-                              Save
-                            </button>
-                            <button
-                              className="px-3 py-1 text-sm rounded bg-gray-300 text-gray-800"
-                              onClick={() => setEditingLeaveId(null)}
-                            >
-                              Cancel
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    }
+                  {dataToShow.map((rec) => {
+                    const remaining =
+                      rec.leaveBalance - rec.appliedLeaves;
 
                     return (
                       <tr key={rec.userId}>
                         <td className="px-4 py-2">{rec.userName}</td>
                         <td className="px-4 py-2">{rec.leaveBalance}</td>
-                        <td className="px-4 py-2">{rec.appliedLeaves}</td>
-                        <td className="px-4 py-2">{rec.totalLeaves}</td>
+                        <td className="px-4 py-2">
+                          {rec.appliedLeaves}
+                        </td>
+                        <td className="px-4 py-2">{remaining}</td>
                         <td className="px-4 py-2">
                           <button
                             className="px-3 py-1 text-sm rounded bg-purple-600 text-white"
-                            onClick={() => {
-                              setEditingLeaveId(rec.userId);
-                              setEditingLeaveData({
-                                name: rec.userName,
-                                leaves: rec.leaveBalance,
-                                appliedLeaves: rec.appliedLeaves,
-                              });
-                            }}
+                            onClick={() => handleEditClick(rec)}
                           >
                             Edit
                           </button>
@@ -220,7 +208,17 @@ console.log("Month year", month,year)
             </div>
           )}
         </>
-      )} 
+      )}
+
+      {/* Edit modal overlay */}
+      <EditLeaveModal
+        isOpen={!!editingRecord}
+        record={editingRecord}
+        onClose={handleCloseModal}
+        onSave={handleSaveModal}
+        saving={saving}
+        error={modalError}
+      />
     </div>
   );
 };
