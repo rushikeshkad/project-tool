@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import MonthYearPicker from "../components/layout/MonthYearPicker";
 import { mockLeaveRecords } from "../utils/mockData";
 import { leaveService } from "../api/apiService";
-import EditLeaveModal from "../components/layout/EditLeaveModal";
-import ApplyLeaveModal from "../components/layout/ApplyLeaveModal"; // ✅ NEW
+import LeaveModal from "../components/layout/LeaveModal";
 
 const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
   const [selectedM, setSelectedM] = useState(""); // e.g. "2025-07"
@@ -12,64 +11,59 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
   const [fetchError, setFetchError] = useState("");
   const [loadingLeaves, setLoadingLeaves] = useState(false);
 
-  // Edit modal-related state
-  const [editingRecord, setEditingRecord] = useState(null);
-  const [saving, setSaving] = useState(false);
+  // Modal state (single modal for apply + edit)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("apply"); // "apply" | "edit"
+  const [activeRecord, setActiveRecord] = useState(null);
+  const [modalSaving, setModalSaving] = useState(false);
   const [modalError, setModalError] = useState("");
 
-  // Apply Leave modal-related state
-  const [applyOpen, setApplyOpen] = useState(false);
-  const [applySaving, setApplySaving] = useState(false);
-  const [applyError, setApplyError] = useState("");
+  // For delete / list-level actions
+  const [listSaving, setListSaving] = useState(false);
 
   // Split "YYYY-MM" into [year, month]
   const [year, month] = selectedM ? selectedM.split("-") : ["", ""];
 
   // ---------------------------------------------------------------------------
-  // Fetch leave records for selected year + month
+  // Helper: fetch/refresh leaves from backend for current year+month
+  // ---------------------------------------------------------------------------
+  const refreshLeaves = async (y = year, m = month) => {
+    if (!y || !m) {
+      setLeaveRecordsData([]);
+      return;
+    }
+
+    setLoadingLeaves(true);
+    setFetchError("");
+
+    try {
+      const response = await leaveService.getByYearMonth(y, m);
+      const data = response?.data ?? response ?? [];
+
+      setLeaveRecordsData(data);
+      setLeaveRecords && setLeaveRecords(data);
+    } catch (err) {
+      console.error("Error fetching leave records:", err);
+      // You can show a nicer message if you want
+      setFetchError("");
+      // If backend is down, you can still show mock data
+      setLeaveRecordsData([]);
+    } finally {
+      setLoadingLeaves(false);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // Fetch leave records when year/month change
   // ---------------------------------------------------------------------------
   useEffect(() => {
     if (!year || !month) {
       setLeaveRecordsData([]);
       return;
     }
-
-    let cancelled = false;
-
-    const fetchLeaves = async () => {
-      try {
-        setLoadingLeaves(true);
-        setFetchError("");
-
-        const response = await leaveService.getByYearMonth(year, month);
-        const data = response?.data ?? response ?? [];
-
-        if (!cancelled) {
-          setLeaveRecordsData(data);
-          // keep parent state in sync if provided
-          setLeaveRecords && setLeaveRecords(data);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setFetchError(
-            // keep silent text if you want, or add message here
-            ""
-          );
-          console.error("Error fetching leave records:", err);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingLeaves(false);
-        }
-      }
-    };
-
-    fetchLeaves();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [year, month, setLeaveRecords]);
+    refreshLeaves(year, month);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [year, month]);
 
   // Use API data if present, then parent data, otherwise fall back to mock
   const dataToShow =
@@ -77,8 +71,8 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
     (leaveRecords && leaveRecords.length > 0 && leaveRecords) ||
     mockLeaveRecords;
 
-  // Build user list for ApplyLeaveModal (unique by userId)
-  const usersForApply = Object.values(
+  // Build unique users list for modal user dropdown
+  const usersForModal = Object.values(
     dataToShow.reduce((acc, rec) => {
       acc[rec.userId] = {
         userId: rec.userId,
@@ -92,91 +86,137 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
   );
 
   // ---------------------------------------------------------------------------
-  // Edit modal handlers
+  // Modal handlers
   // ---------------------------------------------------------------------------
-  const handleEditClick = (rec) => {
+  const openApplyModal = () => {
+    setModalMode("apply");
+    setActiveRecord(null);
     setModalError("");
-    setEditingRecord(rec);
+    setModalOpen(true);
+  };
+
+  const handleEditClick = (rec) => {
+    setModalMode("edit");
+    setActiveRecord(rec);
+    setModalError("");
+    setModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    setEditingRecord(null);
+    setModalOpen(false);
+    setActiveRecord(null);
     setModalError("");
   };
 
-  const handleSaveModal = async (updatedFields) => {
-    if (!editingRecord) return;
+  const handleSubmitLeaveModal = async (payload) => {
+    if (!payload) return;
 
     try {
-      setSaving(true);
+      setModalSaving(true);
       setModalError("");
 
-      // Call backend API
-      await leaveService.update(editingRecord.userId, updatedFields);
+      if (modalMode === "apply") {
+        // ---------------- APPLY MODE ----------------
+        let createdRecord;
 
-      const updater = (prev) =>
-        prev.map((item) =>
-          item.userId === editingRecord.userId
-            ? {
-                ...item,
-                userName: updatedFields.name,
-                leaveBalance: updatedFields.leaveBalance,
-                appliedLeaves: updatedFields.appliedLeaves,
-              }
-            : item
-        );
+        try {
+          const response = await leaveService.applyLeave(payload);
+          createdRecord = response?.data ?? response;
+          // ✅ After successful backend save, re-fetch fresh list:
+          await refreshLeaves();
+          handleCloseModal();
+          return;
+        } catch (err) {
+          console.error("Error applying leave:", err);
+          const isNetworkError = !err.response;
 
-      setLeaveRecordsData((prev) => updater(prev));
-      setLeaveRecords && setLeaveRecords((prev) => updater(prev));
+          if (isNetworkError) {
+            setModalError(
+              "Network not connected – using mock data (changes not saved to server)."
+            );
 
-      handleCloseModal();
-    } catch (err) {
-      // No response object => network error / backend not reachable
-      if (!err?.response) {
-        console.warn(
-          "Network not connected, using mock data. Original error:",
-          err
-        );
+            // Build a fake record based on payload
+            createdRecord = {
+              id: Date.now(),
+              userId: payload.userId,
+              userName: payload.userName,
+              email: payload.email,
+              year: payload.year,
+              month: payload.month,
+              leaveType: payload.leaveType,
+              fromDate: payload.fromDate,
+              toDate: payload.toDate,
+              appliedLeaves:
+                (payload.appliedLeaves ?? 0) + payload.days,
+              leaveBalance:
+                (payload.leaveBalance ?? 0) - payload.days,
+            };
 
-        setModalError(
-          "Network not connected – using mock data. Changes are not saved to server."
-        );
-
-        const updater = (prev) =>
-          prev.map((item) =>
-            item.userId === editingRecord.userId
-              ? {
-                  ...item,
-                  userName: updatedFields.name,
-                  leaveBalance: updatedFields.leaveBalance,
-                  appliedLeaves: updatedFields.appliedLeaves,
-                }
-              : item
-          );
-
-        // If we already have local data, update that; otherwise start from mocks
-        setLeaveRecordsData((prev) =>
-          prev && prev.length > 0 ? updater(prev) : updater(mockLeaveRecords)
-        );
-
-        setLeaveRecords &&
-          setLeaveRecords((prev) =>
-            prev && prev.length > 0 ? updater(prev) : updater(mockLeaveRecords)
-          );
-
-        handleCloseModal();
+            const addRec = (prev) => [...prev, createdRecord];
+            setLeaveRecordsData((prev) => addRec(prev));
+            setLeaveRecords && setLeaveRecords((prev) => addRec(prev));
+            handleCloseModal();
+            return;
+          } else {
+            setModalError(
+              err.response?.data?.message ||
+                err.message ||
+                "Failed to apply leave"
+            );
+            return;
+          }
+        }
       } else {
-        // Real backend responded with an error (4xx / 5xx)
-        setModalError(
-          err?.response?.data?.message ||
-            err?.message ||
-            "Failed to save leave data"
-        );
-      }
+        // ---------------- EDIT MODE ----------------
+        if (!activeRecord) return;
 
-      console.error("Error updating leave record:", err);
+        let updatedRecord;
+        try {
+          const response = await leaveService.update(
+            activeRecord.userId,
+            payload
+          );
+          updatedRecord = response?.data ?? response;
+
+          // ✅ Re-fetch from backend to ensure we see latest data
+          await refreshLeaves();
+          handleCloseModal();
+          return;
+        } catch (err) {
+          console.error("Error updating leave record:", err);
+          const isNetworkError = !err.response;
+
+          if (isNetworkError) {
+            setModalError(
+              "Network not connected – updating locally (not saved to server)."
+            );
+
+            updatedRecord = {
+              ...activeRecord,
+              ...payload,
+            };
+
+            const replace = (prev) =>
+              (prev || []).map((item) =>
+                item.userId === activeRecord.userId ? updatedRecord : item
+              );
+
+            setLeaveRecordsData((prev) => replace(prev));
+            setLeaveRecords && setLeaveRecords((prev) => replace(prev));
+            handleCloseModal();
+            return;
+          } else {
+            setModalError(
+              err.response?.data?.message ||
+                err.message ||
+                "Failed to update leave"
+            );
+            return;
+          }
+        }
+      }
     } finally {
-      setSaving(false);
+      setModalSaving(false);
     }
   };
 
@@ -190,22 +230,13 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
     if (!confirmDelete) return;
 
     try {
-      setSaving(true); // reuse saving flag to disable buttons
+      setListSaving(true);
       setFetchError("");
 
-      // Try backend delete
       await leaveService.delete(rec.userId, year, month);
 
-      const filterFn = (list) =>
-        (list || []).filter((item) => item.userId !== rec.userId);
-
-      setLeaveRecordsData((prev) =>
-        prev && prev.length > 0 ? filterFn(prev) : filterFn(mockLeaveRecords)
-      );
-      setLeaveRecords &&
-        setLeaveRecords((prev) =>
-          prev && prev.length > 0 ? filterFn(prev) : filterFn(mockLeaveRecords)
-        );
+      // ✅ After real delete, re-fetch latest data
+      await refreshLeaves();
     } catch (err) {
       if (!err?.response) {
         console.warn(
@@ -233,74 +264,8 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
             "Failed to delete leave record"
         );
       }
-
-      console.error("Error deleting leave record:", err);
     } finally {
-      setSaving(false);
-    }
-  };
-
-  // ---------------------------------------------------------------------------
-  // Apply Leave handlers
-  // ---------------------------------------------------------------------------
-  const handleApplyLeave = async (payload) => {
-    try {
-      setApplySaving(true);
-      setApplyError("");
-
-      const finalPayload = {
-        ...payload,
-        year: payload.year || year,
-        month: payload.month || month,
-      };
-
-      let createdRecord;
-
-      try {
-        const response = await leaveService.applyLeave(finalPayload);
-        createdRecord = response?.data ?? response;
-      } catch (err) {
-        console.error("Error applying leave:", err);
-
-        const isNetworkError = !err.response;
-
-        if (isNetworkError) {
-          setApplyError(
-            "Network not connected – using mock data (changes not saved to server)."
-          );
-
-          createdRecord = {
-            id: Date.now(),
-            userId: payload.userId,
-            userName: payload.userName,
-            email: payload.email,
-            year: finalPayload.year,
-            month: finalPayload.month,
-            leaveType: payload.leaveType,
-            fromDate: payload.fromDate,
-            toDate: payload.toDate,
-            appliedLeaves:
-              (payload.currentAppliedLeaves ?? 0) + payload.days,
-            leaveBalance: payload.currentLeaveBalance - payload.days,
-          };
-        } else {
-          setApplyError(
-            err?.response?.data?.message ||
-              err?.message ||
-              "Failed to apply leave"
-          );
-          return;
-        }
-      }
-
-      const addRecord = (prev) => [...prev, createdRecord];
-
-      setLeaveRecordsData((prev) => addRecord(prev));
-      setLeaveRecords && setLeaveRecords((prev) => addRecord(prev));
-
-      setApplyOpen(false);
-    } finally {
-      setApplySaving(false);
+      setListSaving(false);
     }
   };
 
@@ -327,10 +292,7 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
           <button
             type="button"
             className="px-4 py-2 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700 transition-colors disabled:opacity-50"
-            onClick={() => {
-              setApplyError("");
-              setApplyOpen(true);
-            }}
+            onClick={openApplyModal}
             disabled={!year || !month}
             title={!year || !month ? "Select a month & year first" : "Apply Leave"}
           >
@@ -397,7 +359,7 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
                           <button
                             className="px-3 py-1 text-sm rounded bg-red-600 text-white disabled:opacity-50"
                             onClick={() => handleDeleteClick(rec)}
-                            disabled={saving}
+                            disabled={listSaving}
                           >
                             Delete
                           </button>
@@ -412,29 +374,18 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
         </>
       )}
 
-      {/* Edit modal overlay */}
-      <EditLeaveModal
-        isOpen={!!editingRecord}
-        record={editingRecord}
-        onClose={handleCloseModal}
-        onSave={handleSaveModal}
-        saving={saving}
-        error={modalError}
-      />
-
-      {/* Apply Leave modal */}
-      <ApplyLeaveModal
-        isOpen={applyOpen}
-        users={usersForApply}
+      {/* Unified Leave modal (Apply + Edit) */}
+      <LeaveModal
+        isOpen={modalOpen}
+        mode={modalMode}
+        record={activeRecord}
+        users={usersForModal}
         year={year}
         month={month}
-        onClose={() => {
-          setApplyOpen(false);
-          setApplyError("");
-        }}
-        onApply={handleApplyLeave}
-        saving={applySaving}
-        error={applyError}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmitLeaveModal}
+        saving={modalSaving}
+        error={modalError}
       />
     </div>
   );
