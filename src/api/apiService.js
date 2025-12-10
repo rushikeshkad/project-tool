@@ -76,4 +76,11 @@ export const leaveService = {
     const res = await api.put(`/leaves/${userId}`, payload);
     return res.data;
   },
+
+delete(userId, year, month) {
+  return api.delete(`/leaves/${userId}`, {
+    params: { year, month },
+  });
+}
+
 };
