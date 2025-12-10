@@ -89,39 +89,75 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
     if (!editingRecord) return;
 
     try {
-      setSaving(true);
-      setModalError("");
+  setSaving(true);
+  setModalError("");
 
-      // Call backend API
-      await leaveService.update(editingRecord.userId, updatedFields);
+  // Call backend API
+  await leaveService.update(editingRecord.userId, updatedFields);
 
-      // Update local list (from API or mock) AND parent state
-      const updater = (prev) =>
-        prev.map((item) =>
-          item.userId === editingRecord.userId
-            ? {
-                ...item,
-                userName: updatedFields.name,
-                leaveBalance: updatedFields.leaveBalance,
-                appliedLeaves: updatedFields.appliedLeaves,
-              }
-            : item
-        );
+  const updater = (prev) =>
+    prev.map((item) =>
+      item.userId === editingRecord.userId
+        ? {
+            ...item,
+            userName: updatedFields.name,
+            leaveBalance: updatedFields.leaveBalance,
+            appliedLeaves: updatedFields.appliedLeaves,
+          }
+        : item
+    );
 
-      setLeaveRecordsData((prev) => updater(prev));
-      setLeaveRecords && setLeaveRecords((prev) => updater(prev));
+  setLeaveRecordsData((prev) => updater(prev));
+  setLeaveRecords && setLeaveRecords((prev) => updater(prev));
 
-      handleCloseModal();
-    } catch (err) {
-      setModalError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to save leave data"
+  handleCloseModal();
+} catch (err) {
+  // No response object => network error / backend not reachable
+  if (!err?.response) {
+    console.warn("Network not connected, using mock data. Original error:", err);
+
+    setModalError(
+      "Network not connected – using mock data. Changes are not saved to server."
+    );
+
+    // Use mock data as local source of truth
+    const updater = (prev) =>
+      prev.map((item) =>
+        item.userId === editingRecord.userId
+          ? {
+              ...item,
+              userName: updatedFields.name,
+              leaveBalance: updatedFields.leaveBalance,
+              appliedLeaves: updatedFields.appliedLeaves,
+            }
+          : item
       );
-      console.error("Error updating leave record:", err);
-    } finally {
-      setSaving(false);
-    }
+
+    // If we already have local data, update that; otherwise start from mocks
+    setLeaveRecordsData((prev) =>
+      prev && prev.length > 0 ? updater(prev) : updater(mockLeaveRecords)
+    );
+
+    setLeaveRecords &&
+      setLeaveRecords((prev) =>
+        prev && prev.length > 0 ? updater(prev) : updater(mockLeaveRecords)
+      );
+
+    // You can choose whether to close the modal or leave it open.
+    handleCloseModal();
+  } else {
+    // Real backend responded with an error (4xx / 5xx)
+    setModalError(
+      err?.response?.data?.message ||
+        err?.message ||
+        "Failed to save leave data"
+    );
+  }
+
+  console.error("Error updating leave record:", err);
+} finally {
+  setSaving(false);
+}
   };
 
   // ---------------------------------------------------------------------------
