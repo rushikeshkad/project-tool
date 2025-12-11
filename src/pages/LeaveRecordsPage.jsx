@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import MonthYearPicker from "../components/layout/MonthYearPicker";
 import { mockLeaveRecords } from "../utils/mockData";
 import { leaveService } from "../api/apiService";
@@ -20,6 +20,95 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
 
   const [year, month] = selectedM ? selectedM.split("-") : ["", ""];
 
+  // Process and group leaves by user with multi-row display logic
+  const processedLeaveData = useMemo(() => {
+    const dataSource = leaveRecordsData?.length > 0 ? leaveRecordsData : 
+                       leaveRecords?.length > 0 ? leaveRecords : 
+                       mockLeaveRecords;
+
+    // Group by userId
+    const grouped = dataSource.reduce((acc, record) => {
+      if (!acc[record.userId]) {
+        acc[record.userId] = {
+          userId: record.userId,
+          userName: record.userName,
+          email: record.email,
+          leaveBalance: record.leaveBalance || 0,
+          plannedLeaves: record.plannedLeaves || 0,
+          unplannedLeaves: record.unplannedLeaves || 0,
+          floatingHoliday: record.floatingHoliday || 0,
+          appliedLeaves: record.appliedLeaves || 0,
+          leaveApplications: []
+        };
+      }
+
+      // Add leave application
+      if (record.leaveType) {
+        acc[record.userId].leaveApplications.push({
+          id: record.id,
+          leaveType: record.leaveType,
+          fromDate: record.fromDate,
+          toDate: record.toDate,
+          days: record.days || 1
+        });
+      }
+
+      return acc;
+    }, {});
+
+    // Convert to array and sort by name
+    return Object.values(grouped).sort((a, b) => 
+      (a.userName || "").localeCompare(b.userName || "")
+    );
+  }, [leaveRecordsData, leaveRecords]);
+
+  // Group consecutive dates of same leave type
+  const groupDates = (applications) => {
+    if (!applications || applications.length === 0) return [];
+
+    // Sort by date first
+    const sorted = [...applications].sort((a, b) => 
+      new Date(a.fromDate) - new Date(b.fromDate)
+    );
+
+    const grouped = [];
+    let current = { ...sorted[0] };
+
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = current;
+      const next = sorted[i];
+
+      // Check if same type and consecutive dates
+      const prevEnd = new Date(prev.toDate);
+      const nextStart = new Date(next.fromDate);
+      const dayDiff = (nextStart - prevEnd) / (1000 * 60 * 60 * 24);
+
+      if (prev.leaveType === next.leaveType && dayDiff <= 1) {
+        // Merge consecutive dates of same type
+        current.toDate = next.toDate;
+        current.days += next.days;
+      } else {
+        // Save current and start new group
+        grouped.push(current);
+        current = { ...next };
+      }
+    }
+    grouped.push(current);
+
+    return grouped;
+  };
+
+  // Calculate totals by leave type
+  const calculateTypeTotals = (applications) => {
+    const totals = { PL: 0, UL: 0, FH: 0 };
+    applications.forEach(app => {
+      if (app.leaveType === "Planned Leave") totals.PL += app.days;
+      else if (app.leaveType === "Unplanned Leave") totals.UL += app.days;
+      else if (app.leaveType === "Floating Holiday") totals.FH += app.days;
+    });
+    return totals;
+  };
+
   // Refresh leaves from backend
   const refreshLeaves = async (y = year, m = month) => {
     if (!y || !m) {
@@ -33,14 +122,8 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
     try {
       const response = await leaveService.getByYearMonth(y, m);
       const data = response?.data ?? response ?? [];
-
-      // Sort by name
-      const sortedData = [...data].sort((a, b) => 
-        (a.userName || "").localeCompare(b.userName || "")
-      );
-
-      setLeaveRecordsData(sortedData);
-      setLeaveRecords && setLeaveRecords(sortedData);
+      setLeaveRecordsData(data);
+      setLeaveRecords && setLeaveRecords(data);
     } catch (err) {
       console.error("Error fetching leave records:", err);
       setFetchError("");
@@ -50,6 +133,7 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
     }
   };
 
+  // Fetch leaves when month/year changes
   useEffect(() => {
     if (!year || !month) {
       setLeaveRecordsData([]);
@@ -58,28 +142,19 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
     refreshLeaves(year, month);
   }, [year, month]);
 
-  const dataToShow =
-    (leaveRecordsData && leaveRecordsData.length > 0 && leaveRecordsData) ||
-    (leaveRecords && leaveRecords.length > 0 && leaveRecords) ||
-    mockLeaveRecords;
+  // Build users list for modal
+  const usersForModal = processedLeaveData.map(user => ({
+    userId: user.userId,
+    userName: user.userName,
+    email: user.email,
+    leaveBalance: user.leaveBalance,
+    plannedLeaves: user.plannedLeaves,
+    unplannedLeaves: user.unplannedLeaves,
+    floatingHoliday: user.floatingHoliday,
+    appliedLeaves: user.appliedLeaves,
+  }));
 
-  // Build unique users list
-  const usersForModal = Object.values(
-    dataToShow.reduce((acc, rec) => {
-      acc[rec.userId] = {
-        userId: rec.userId,
-        userName: rec.userName,
-        email: rec.email,
-        leaveBalance: rec.leaveBalance || 0,
-        plannedLeaves: rec.plannedLeaves || 0,
-        unplannedLeaves: rec.unplannedLeaves || 0,
-        floatingHoliday: rec.floatingHoliday || 0,
-        appliedLeaves: rec.appliedLeaves || 0,
-      };
-      return acc;
-    }, {})
-  );
-
+  // Modal handlers
   const openApplyModal = () => {
     setModalMode("apply");
     setActiveRecord(null);
@@ -87,9 +162,9 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
     setModalOpen(true);
   };
 
-  const handleEditClick = (rec) => {
+  const handleEditClick = (user) => {
     setModalMode("edit");
-    setActiveRecord(rec);
+    setActiveRecord(user);
     setModalError("");
     setModalOpen(true);
   };
@@ -107,89 +182,21 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
       setModalSaving(true);
       setModalError("");
 
-      if (modalMode === "apply") {
-        // Apply new leave
-        try {
-          const response = await leaveService.applyLeave(payload);
-          await refreshLeaves();
-          handleCloseModal();
-          return;
-        } catch (err) {
-          console.error("Error applying leave:", err);
-          const isNetworkError = !err.response;
-
-          if (isNetworkError) {
-            setModalError("Network not connected – using mock data.");
-            
-            // Calculate new values based on leave type
-            const user = usersForModal.find(u => u.userId === payload.userId);
-            const newRecord = {
-              id: Date.now(),
-              userId: payload.userId,
-              userName: payload.userName,
-              email: payload.email,
-              year: payload.year,
-              month: payload.month,
-              leaveType: payload.leaveType,
-              fromDate: payload.fromDate,
-              toDate: payload.toDate,
-              leaveBalance: user.leaveBalance - payload.days,
-              plannedLeaves: payload.leaveType === "Planned Leave" 
-                ? user.plannedLeaves - payload.days 
-                : user.plannedLeaves,
-              unplannedLeaves: payload.leaveType === "Unplanned Leave" 
-                ? user.unplannedLeaves - payload.days 
-                : user.unplannedLeaves,
-              floatingHoliday: payload.leaveType === "Floating Holiday" 
-                ? user.floatingHoliday - payload.days 
-                : user.floatingHoliday,
-              appliedLeaves: user.appliedLeaves + payload.days,
-            };
-
-            const addRec = (prev) => [...prev, newRecord];
-            setLeaveRecordsData((prev) => addRec(prev));
-            setLeaveRecords && setLeaveRecords((prev) => addRec(prev));
-            handleCloseModal();
-            return;
-          } else {
-            setModalError(err.response?.data?.message || "Failed to apply leave");
-            return;
-          }
+      // Call API to apply/edit leaves
+      try {
+        if (modalMode === "apply") {
+          await leaveService.applyLeave(payload);
+        } else {
+          await leaveService.update(payload.userId, payload);
         }
-      } else {
-        // Edit existing leave
-        if (!activeRecord) return;
-
-        try {
-          const response = await leaveService.update(activeRecord.userId, payload);
-          await refreshLeaves();
-          handleCloseModal();
-          return;
-        } catch (err) {
-          console.error("Error updating leave record:", err);
-          const isNetworkError = !err.response;
-
-          if (isNetworkError) {
-            setModalError("Network not connected – updating locally.");
-
-            const updatedRecord = {
-              ...activeRecord,
-              ...payload,
-            };
-
-            const replace = (prev) =>
-              (prev || []).map((item) =>
-                item.userId === activeRecord.userId ? updatedRecord : item
-              );
-
-            setLeaveRecordsData((prev) => replace(prev));
-            setLeaveRecords && setLeaveRecords((prev) => replace(prev));
-            handleCloseModal();
-            return;
-          } else {
-            setModalError(err.response?.data?.message || "Failed to update leave");
-            return;
-          }
+        await refreshLeaves();
+        handleCloseModal();
+      } catch (err) {
+        console.error("Error:", err);
+        if (!err.response) {
+          setModalError("Network not connected – changes not saved to server.");
+        } else {
+          setModalError(err.response?.data?.message || "Failed to process leave");
         }
       }
     } finally {
@@ -197,34 +204,39 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
     }
   };
 
-  const handleDeleteClick = async (rec) => {
+  const handleDeleteClick = async (user) => {
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete leave record for "${rec.userName}"?`
+      `Are you sure you want to delete all leave records for "${user.userName}"?`
     );
     if (!confirmDelete) return;
 
     try {
       setListSaving(true);
       setFetchError("");
-
-      await leaveService.delete(rec.userId, year, month);
+      await leaveService.delete(user.userId, year, month);
       await refreshLeaves();
     } catch (err) {
       if (!err?.response) {
-        console.warn("Network not connected, deleting locally.");
         setFetchError("Network not connected – deleted locally.");
-
-        const filterFn = (list) =>
-          (list || []).filter((item) => item.userId !== rec.userId);
-
-        setLeaveRecordsData((prev) => filterFn(prev));
-        setLeaveRecords && setLeaveRecords((prev) => filterFn(prev));
       } else {
-        setFetchError(err?.response?.data?.message || "Failed to delete leave record");
+        setFetchError(err?.response?.data?.message || "Failed to delete");
       }
     } finally {
       setListSaving(false);
     }
+  };
+
+  // Format date range for display
+  const formatDateRange = (fromDate, toDate) => {
+    const from = new Date(fromDate).toLocaleDateString('en-GB', { 
+      day: '2-digit', 
+      month: 'short' 
+    });
+    const to = new Date(toDate).toLocaleDateString('en-GB', { 
+      day: '2-digit', 
+      month: 'short' 
+    });
+    return fromDate === toDate ? from : `${from} to ${to}`;
   };
 
   return (
@@ -233,7 +245,7 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
         Leave Records Management
       </h1>
 
-      {/* Month picker + Apply button */}
+      {/* Month/Year Picker and Apply Button */}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <label className="block text-sm font-bold text-gray-700 mb-3">
           <Calendar className="w-5 h-5 inline mr-2" />
@@ -242,7 +254,7 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
 
         <div className="flex items-center gap-4">
           <MonthYearPicker value={selectedM} onChange={setSelectedM} />
-
+          
           <button
             type="button"
             className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white 
@@ -256,12 +268,14 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
         </div>
       </div>
 
+      {/* Error Message */}
       {fetchError && (
         <div className="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 rounded-lg">
           {fetchError}
         </div>
       )}
 
+      {/* Leave Records Table */}
       {year && month && (
         <>
           {loadingLeaves ? (
@@ -269,7 +283,7 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
               <p className="text-gray-500 mt-4">Loading leave records...</p>
             </div>
-          ) : dataToShow.length === 0 ? (
+          ) : processedLeaveData.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
               <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg">No leave records found for this month.</p>
@@ -280,85 +294,155 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
                 <table className="w-full">
                   <thead className="bg-gradient-to-r from-purple-600 to-cyan-600 text-white">
                     <tr>
-                      <th className="px-6 py-4 text-left font-semibold">Name</th>
-                      <th className="px-6 py-4 text-center font-semibold">Leaves Available</th>
-                      <th className="px-6 py-4 text-center font-semibold">Planned Leaves</th>
-                      <th className="px-6 py-4 text-center font-semibold">Unplanned Leaves</th>
-                      <th className="px-6 py-4 text-center font-semibold">Floating Holiday (Max 2)</th>
-                      <th className="px-6 py-4 text-center font-semibold">Applied Leave Type</th>
-                      <th className="px-6 py-4 text-center font-semibold">Applied Leaves</th>
-                      <th className="px-6 py-4 text-center font-semibold">Actions</th>
+                      <th className="px-6 py-4 text-left font-semibold w-48">Name</th>
+                      <th className="px-6 py-4 text-center font-semibold w-40">No. of Leaves Applied</th>
+                      <th className="px-6 py-4 text-left font-semibold w-40">Leave Type</th>
+                      <th className="px-6 py-4 text-left font-semibold w-56">Date</th>
+                      <th className="px-6 py-4 text-left font-semibold w-48">Leaves Available</th>
+                      <th className="px-6 py-4 text-center font-semibold w-32">Actions</th>
                     </tr>
                   </thead>
 
                   <tbody className="divide-y divide-gray-200">
-                    {dataToShow.map((rec, idx) => (
-                      <tr 
-                        key={rec.userId} 
-                        className={`hover:bg-gradient-to-r hover:from-purple-50 hover:to-cyan-50 transition-colors ${
-                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                        }`}
-                      >
-                        <td className="px-6 py-4 font-semibold text-gray-800">{rec.userName}</td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-bold">
-                            {rec.leaveBalance || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block px-4 py-2 bg-green-100 text-green-700 rounded-lg font-bold">
-                            {rec.plannedLeaves || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block px-4 py-2 bg-orange-100 text-orange-700 rounded-lg font-bold">
-                            {rec.unplannedLeaves || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-bold">
-                            {rec.floatingHoliday || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                            rec.leaveType === "Planned Leave" 
-                              ? "bg-green-200 text-green-800"
-                              : rec.leaveType === "Unplanned Leave"
-                              ? "bg-orange-200 text-orange-800"
-                              : "bg-purple-200 text-purple-800"
-                          }`}>
-                            {rec.leaveType || "-"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="inline-block px-4 py-2 bg-red-100 text-red-700 rounded-lg font-bold">
-                            {rec.appliedLeaves || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <div className="flex items-center justify-center space-x-2">
-                            <button
-                              className="p-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 
-                                         transition-colors shadow-md hover:shadow-lg"
-                              onClick={() => handleEditClick(rec)}
-                              title="Edit"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 
-                                         transition-colors shadow-md hover:shadow-lg disabled:opacity-50"
-                              onClick={() => handleDeleteClick(rec)}
-                              disabled={listSaving}
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {processedLeaveData.map((user, idx) => {
+                      const groupedApps = groupDates(user.leaveApplications);
+                      const typeTotals = calculateTypeTotals(user.leaveApplications);
+                      const totalApplied = user.appliedLeaves || 0;
+
+                      return (
+                        <tr 
+                          key={user.userId}
+                          className={`hover:bg-gradient-to-r hover:from-purple-50 hover:to-cyan-50 transition-colors ${
+                            idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          }`}
+                        >
+                          {/* Name Column */}
+                          <td className="px-6 py-4 font-semibold text-gray-800 align-top">
+                            <div className="flex flex-col">
+                              <span className="text-lg">{user.userName}</span>
+                              <span className="text-xs text-gray-500">{user.email}</span>
+                            </div>
+                          </td>
+
+                          {/* No. of Leaves Applied Column */}
+                          <td className="px-6 py-4 text-center align-top">
+                            <div className="inline-block px-5 py-3 bg-red-100 text-red-700 rounded-xl font-bold text-2xl shadow-sm">
+                              {totalApplied}
+                            </div>
+                          </td>
+
+                          {/* Leave Type Column - Multiple Internal Rows */}
+                          <td className="px-6 py-4 align-top">
+                            <div className="space-y-2">
+                              {typeTotals.PL > 0 && (
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-semibold text-blue-600 text-sm">PL:</span>
+                                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">
+                                    {typeTotals.PL}
+                                  </span>
+                                </div>
+                              )}
+                              {typeTotals.UL > 0 && (
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-semibold text-orange-600 text-sm">UL:</span>
+                                  <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-bold">
+                                    {typeTotals.UL}
+                                  </span>
+                                </div>
+                              )}
+                              {typeTotals.FH > 0 && (
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-semibold text-green-600 text-sm">FH:</span>
+                                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold">
+                                    {typeTotals.FH}
+                                  </span>
+                                </div>
+                              )}
+                              {typeTotals.PL === 0 && typeTotals.UL === 0 && typeTotals.FH === 0 && (
+                                <span className="text-gray-400 text-sm">No leaves</span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Date Column - Multiple Internal Rows */}
+                          <td className="px-6 py-4 align-top">
+                            <div className="space-y-2">
+                              {groupedApps.length > 0 ? (
+                                groupedApps.map((app, appIdx) => (
+                                  <div 
+                                    key={appIdx} 
+                                    className="text-sm text-gray-700 bg-gray-100 px-3 py-2 rounded-lg font-medium"
+                                  >
+                                    {formatDateRange(app.fromDate, app.toDate)}
+                                    <span className="ml-2 text-xs text-gray-500">
+                                      ({app.days} {app.days === 1 ? 'day' : 'days'})
+                                    </span>
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-gray-400 text-sm">No dates</span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Leaves Available Column - Multiple Internal Rows */}
+                          <td className="px-6 py-4 align-top">
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-semibold text-gray-700 text-sm">Total:</span>
+                                <span className="px-3 py-1 bg-gray-200 text-gray-800 rounded-full text-sm font-bold">
+                                  {user.leaveBalance}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="font-semibold text-blue-600 text-sm">PL:</span>
+                                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">
+                                  {user.plannedLeaves}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="font-semibold text-orange-600 text-sm">UL:</span>
+                                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-bold">
+                                  {user.unplannedLeaves}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="font-semibold text-green-600 text-sm">FH:</span>
+                                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold">
+                                  {user.floatingHoliday}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Actions Column */}
+                          <td className="px-6 py-4 text-center align-top">
+                            <div className="flex flex-col items-center space-y-2">
+                              <button
+                                className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 
+                                           transition-colors shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
+                                onClick={() => handleEditClick(user)}
+                                title="Edit Leave Records"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                                <span className="text-sm font-semibold">Edit</span>
+                              </button>
+                              <button
+                                className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 
+                                           transition-colors shadow-md hover:shadow-lg disabled:opacity-50 
+                                           flex items-center justify-center space-x-2"
+                                onClick={() => handleDeleteClick(user)}
+                                disabled={listSaving}
+                                title="Delete All Leaves"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span className="text-sm font-semibold">Delete</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -367,13 +451,16 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
         </>
       )}
 
+      {/* Empty State - No Month Selected */}
       {!year && !month && (
         <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
           <Calendar className="w-20 h-20 text-purple-300 mx-auto mb-4" />
           <p className="text-gray-500 text-lg">Please select a month and year to view leave records</p>
+          <p className="text-gray-400 text-sm mt-2">Use the picker above to get started</p>
         </div>
       )}
 
+      {/* Leave Modal */}
       <LeaveModal
         isOpen={modalOpen}
         mode={modalMode}
