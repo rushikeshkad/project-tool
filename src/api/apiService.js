@@ -83,4 +83,40 @@ delete(userId, year, month) {
   });
 }
 
+
+
 };
+// ---------- ASSET SERVICE ----------
+export const assetService = {
+  // GET /assets
+  async getAll() {
+    const response = await api.get("/assets");
+    // be defensive: return an array to avoid `.length` on undefined
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  // GET /assets/:id
+  async getById(id) {
+    const response = await api.get(`/assets/${encodeURIComponent(id)}`);
+    return response.data ?? null;
+  },
+
+  // POST /assets
+  async create(asset) {
+    const response = await api.post("/assets", asset);
+    return response.data;
+  },
+
+  // PUT /assets/:id
+  async update(id, asset) {
+    const response = await api.put(`/assets/${encodeURIComponent(id)}`, asset);
+    return response.data;
+  },
+
+  // DELETE /assets/:id
+  async delete(id) {
+    const response = await api.delete(`/assets/${encodeURIComponent(id)}`);
+    return response.data;
+  },
+};
+

@@ -1,13 +1,24 @@
 // src/App.jsx
 import React, { useState, useEffect } from "react";
 import { authService, userDetailsService, leaveService } from "./api/apiService";
+
+// Layout Components
 import Navbar from "./components/layout/Navbar";
-import Sidebar from "./components/layout/Sidebar"
+import Sidebar from "./components/layout/Sidebar";
+
+// Auth Screen
 import AuthScreen from "./components/auth/AuthScreen.jsx";
+
+// Pages
 import DashboardPage from "./pages/DashboardPage";
 import LeaveRecordsPage from "./pages/LeaveRecordsPage";
 import MyDetailsPage from "./pages/MyDetailsPage";
 import AllUserDetailsPage from "./pages/AllUserDetailsPage.jsx";
+import AssetManagementPage from "./pages/AssetManagement.jsx";
+import AssetFormPage from "./pages/AssetFormPage.jsx";
+
+// NEW IMPORTS FOR ASSET MANAGEMENT
+
 
 const App = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,7 +27,6 @@ const App = () => {
 
   const [allUserDetails, setAllUserDetails] = useState([]);
   const [currentUserDetails, setCurrentUserDetails] = useState(null);
-  const [editingDetails, setEditingDetails] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -49,7 +59,7 @@ const App = () => {
     appliedLeaves: 0,
   });
 
-  // Auth form state
+  // Auth form
   const [authForm, setAuthForm] = useState({
     name: "",
     email: "",
@@ -57,10 +67,12 @@ const App = () => {
     confirmPassword: "",
   });
 
-  // Check if user already logged in
+
+  // Auto-login if session exists
   useEffect(() => {
     const email = sessionStorage.getItem("userEmail");
     const name = sessionStorage.getItem("userName");
+
     if (email && name) {
       setUserEmail(email);
       setUserName(name);
@@ -69,36 +81,26 @@ const App = () => {
     }
   }, []);
 
-  // Fetch all user details when on "All Details" page
+
+  // Fetch user list when on All Users page
   useEffect(() => {
     if (isAuthenticated && currentPage === "all-details") {
       fetchAllUserDetails();
     }
   }, [isAuthenticated, currentPage]);
 
-  // 🔁 Fetch leave records whenever year + month change
+
+  // Fetch leave records automatically
   useEffect(() => {
-    // Only fetch if user is logged in and both year & month are chosen
     if (!isAuthenticated || !selectedYear || !selectedMonth) return;
 
     const fetchLeaves = async () => {
       try {
         setLoading(true);
-        setError("");
-        const data = await leaveService.getByYearMonth(
-          selectedYear,
-          selectedMonth
-        );
-        // Expecting array like: [{ id, name, year, month, leaves, appliedLeaves }, ...]
+        const data = await leaveService.getByYearMonth(selectedYear, selectedMonth);
         setLeaveRecords(data);
       } catch (err) {
-        setError(
-          err.response?.data?.message ||
-            err.response?.data ||
-            err.message ||
-            "Failed to fetch leave records"
-        );
-        console.error("Error fetching leave records:", err);
+        setError(err.response?.data?.message || err.message);
       } finally {
         setLoading(false);
       }
@@ -107,10 +109,12 @@ const App = () => {
     fetchLeaves();
   }, [isAuthenticated, selectedYear, selectedMonth]);
 
+
   const fetchCurrentUserDetails = async (email) => {
     try {
       const data = await userDetailsService.getByEmail(email);
       setCurrentUserDetails(data);
+
       if (data) {
         setFormData({
           name: data.name || "",
@@ -131,53 +135,34 @@ const App = () => {
     }
   };
 
+
   const fetchAllUserDetails = async () => {
     try {
       setLoading(true);
       const data = await userDetailsService.getAll();
       setAllUserDetails(data);
-      setError("");
     } catch (err) {
-      setError(
-        "Failed to fetch user details: " +
-          (err.response?.data?.message ||
-            err.message ||
-            JSON.stringify(err))
-      );
-      console.error("Error fetching all user details:", err);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleAuth = async () => {
     if (!authForm.email || !authForm.password) {
       setError("Please fill in all required fields");
       return;
     }
-    if (!isLogin) {
-      if (!authForm.name) {
-        setError("Please enter your name");
-        return;
-      }
-      if (authForm.password !== authForm.confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-    }
 
     try {
       setLoading(true);
       setError("");
 
-      let response;
       if (isLogin) {
-        // LOGIN
-        response = await authService.login(authForm.email, authForm.password);
+        const response = await authService.login(authForm.email, authForm.password);
 
-        const userDetails = await userDetailsService.getByEmail(
-          authForm.email
-        );
+        const userDetails = await userDetailsService.getByEmail(authForm.email);
         if (userDetails) {
           setUserName(userDetails.name);
           sessionStorage.setItem("userName", userDetails.name);
@@ -185,71 +170,48 @@ const App = () => {
 
         sessionStorage.setItem("userEmail", response.email || authForm.email);
         setUserEmail(response.email || authForm.email);
+
         setIsAuthenticated(true);
         setCurrentPage("dashboard");
-
         fetchCurrentUserDetails(response.email || authForm.email);
+
       } else {
-        // REGISTER
-        response = await authService.register(
+        await authService.register(
           authForm.name,
           authForm.email,
           authForm.password,
           authForm.confirmPassword
         );
 
-        alert("User registered successfully. Please log in.");
+        alert("Registration successful. Please login.");
         setIsLogin(true);
-        setAuthForm({
-          name: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-        });
-        setError("");
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.response?.data ||
-          err.message ||
-          "Authentication failed"
-      );
-      console.error("Auth error:", err);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
   };
 
+
   const handleLogout = async () => {
-    try {
-      await authService.logout();
-    } catch (err) {
-      console.error("Logout error:", err);
-    } finally {
-      sessionStorage.removeItem("userEmail");
-      sessionStorage.removeItem("userName");
-      setIsAuthenticated(false);
-      setIsLogin(true);
-      setUserEmail("");
-      setUserName("");
-      setCurrentUserDetails(null);
-      setAllUserDetails([]);
-      setFormData({
-        name: "",
-        empId: "",
-        machineIpAddress: "",
-        deviceHostName: "",
-        clientVpnUsername: "",
-        assetId: "",
-        contactNo: "",
-        bitLockerPassword: "",
-        location: "",
-        vdiPhysicalMachineLocation: "",
-        hwfhPwfH: "",
-      });
-    }
+    await authService.logout();
+    sessionStorage.clear();
+    setIsAuthenticated(false);
+    setUserEmail("");
+    setUserName("");
+    setCurrentUserDetails(null);
+    setAllUserDetails([]);
   };
+
+
+  const handleEditMyDetails = () => {
+    if (currentUserDetails) {
+      setFormData(currentUserDetails);
+    }
+    setCurrentPage("add-edit");
+  };
+
 
   const handleSaveDetails = async () => {
     if (!formData.name) {
@@ -259,107 +221,42 @@ const App = () => {
 
     try {
       setLoading(true);
-      setError("");
 
-      const detailsData = {
-        name: formData.name,
-        empId: formData.empId ? parseInt(formData.empId, 10) : null,
-        machineIpAddress: formData.machineIpAddress || null,
-        deviceHostName: formData.deviceHostName || null,
-        clientVpnUsername: formData.clientVpnUsername || null,
-        assetId: formData.assetId || null,
-        contactNo: formData.contactNo || null,
-        bitLockerPassword: formData.bitLockerPassword || null,
-        location: formData.location || null,
-        vdiPhysicalMachineLocation:
-          formData.vdiPhysicalMachineLocation || null,
-        hwfhPwfH: formData.hwfhPwfH || null,
-      };
+      const payload = { ...formData };
 
       if (editUserEmail && editUserEmail !== userEmail) {
-        await userDetailsService.updateAdmin(editUserEmail, detailsData);
+        await userDetailsService.updateAdmin(editUserEmail, payload);
       } else {
-        await userDetailsService.updateSelf(detailsData);
+        await userDetailsService.updateSelf(payload);
       }
 
-      await fetchCurrentUserDetails(userEmail);
-      setEditingDetails(false);
+      fetchCurrentUserDetails(userEmail);
       setCurrentPage("dashboard");
       setEditUserEmail("");
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.response?.data ||
-          "Failed to save details"
-      );
-      console.error("Error saving details:", err);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEditMyDetails = () => {
-    if (currentUserDetails) {
-      setFormData({
-        name: currentUserDetails.name || "",
-        empId: currentUserDetails.empId || "",
-        machineIpAddress: currentUserDetails.machineIpAddress || "",
-        deviceHostName: currentUserDetails.deviceHostName || "",
-        clientVpnUsername: currentUserDetails.clientVpnUsername || "",
-        assetId: currentUserDetails.assetId || "",
-        contactNo: currentUserDetails.contactNo || "",
-        bitLockerPassword: currentUserDetails.bitLockerPassword || "",
-        location: currentUserDetails.location || "",
-        vdiPhysicalMachineLocation:
-          currentUserDetails.vdiPhysicalMachineLocation || "",
-        hwfhPwfH: currentUserDetails.hwfhPwfH || "",
-      });
-    }
-    setEditingDetails(true);
-    setCurrentPage("add-edit");
-  };
-
-  const handleEditAllDetails = (user) => {
-    if (user) {
-      setEditUserEmail(user.email);
-      setFormData({
-        email: user.email || "",
-        name: user.name || "",
-        empId: user.empId || "",
-        machineIpAddress: user.machineIpAddress || "",
-        deviceHostName: user.deviceHostName || "",
-        clientVpnUsername: user.clientVpnUsername || "",
-        assetId: user.assetId || "",
-        contactNo: user.contactNo || "",
-        bitLockerPassword: user.bitLockerPassword || "",
-        location: user.location || "",
-        vdiPhysicalMachineLocation: user.vdiPhysicalMachineLocation || "",
-        hwfhPwfH: user.hwfhPwfH || "",
-      });
-    }
-    setEditingDetails(true);
-    setCurrentPage("add-edit");
-  };
 
   const handleDeleteUser = async (email) => {
-    if (!window.confirm("Are you sure you want to delete this user's details?")) {
-      return;
-    }
+    if (!window.confirm("Delete user?")) return;
 
     try {
       setLoading(true);
       await userDetailsService.delete(email);
-      await fetchAllUserDetails();
-      setError("");
+      fetchAllUserDetails();
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete user details");
-      console.error("Error deleting user:", err);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Show auth screen when NOT authenticated
+
+  // ❌ FIX: AuthScreen must show when NOT authenticated
   if (isAuthenticated) {
     return (
       <AuthScreen
@@ -374,21 +271,17 @@ const App = () => {
     );
   }
 
-  // Main app layout
+
+  // MAIN APPLICATION UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50">
       <Navbar userName={userName} handleLogout={handleLogout} />
 
       {error && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 mt-4">
+          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex justify-between">
             <span>{error}</span>
-            <button
-              onClick={() => setError("")}
-              className="text-red-700 hover:text-red-900"
-            >
-              ✕
-            </button>
+            <button onClick={() => setError("")}>✕</button>
           </div>
         </div>
       )}
@@ -397,68 +290,59 @@ const App = () => {
         <Sidebar
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
-          setError={setError}
           handleEditMyDetails={handleEditMyDetails}
+          setError={setError}
         />
 
         <main className="flex-1 p-8">
           <div className="max-w-6xl mx-auto">
-            {loading && currentPage === "dashboard" ? (
-              <div className="flex items-center justify-center h-64">
-                Loading...
-              </div>
-            ) : (
-              <>
-                {currentPage === "dashboard" && (
-                  <DashboardPage
-                    currentUserDetails={currentUserDetails}
-                    userEmail={userEmail}
-                    handleEditMyDetails={handleEditMyDetails}
-                  />
-                )}
 
-                {currentPage === "leave-records" && (
-                  // <LeaveRecordsPage
-                  //   // selectedYear={selectedYear}
-                  //   // setSelectedYear={setSelectedYear}
-                  //   // selectedMonth={selectedMonth}
-                  //   // setSelectedMonth={setSelectedMonth}
-                  //   leaveRecords={leaveRecords}
-                  //   editingLeaveId={editingLeaveId}
-                  //   setEditingLeaveId={setEditingLeaveId}
-                  //   editingLeaveData={editingLeaveData}
-                  //   setEditingLeaveData={setEditingLeaveData}
-                  //   setLeaveRecords={setLeaveRecords}
-                  // />
-                  <LeaveRecordsPage
-                    leaveRecords={leaveRecords}
-                    setLeaveRecords={setLeaveRecords}
-                  />
-
-                )}
-
-                {currentPage === "add-edit" && (
-                  <MyDetailsPage
-                    currentUserDetails={currentUserDetails}
-                    formData={formData}
-                    setFormData={setFormData}
-                    loading={loading}
-                    handleSaveDetails={handleSaveDetails}
-                    goBackToDashboard={() => setCurrentPage("dashboard")}
-                  />
-                )}
-
-                {currentPage === "all-details" && (
-                  <AllUserDetailsPage
-                    allUserDetails={allUserDetails}
-                    loading={loading}
-                    userEmail={userEmail}
-                    handleEditAllDetails={handleEditAllDetails}
-                    handleDeleteUser={handleDeleteUser}
-                  />
-                )}
-              </>
+            {currentPage === "dashboard" && (
+              <DashboardPage
+                currentUserDetails={currentUserDetails}
+                userEmail={userEmail}
+                handleEditMyDetails={handleEditMyDetails}
+              />
             )}
+
+            {currentPage === "leave-records" && (
+              <LeaveRecordsPage leaveRecords={leaveRecords} setLeaveRecords={setLeaveRecords} />
+            )}
+
+            {currentPage === "add-edit" && (
+              <MyDetailsPage
+                currentUserDetails={currentUserDetails}
+                formData={formData}
+                setFormData={setFormData}
+                loading={loading}
+                handleSaveDetails={handleSaveDetails}
+                goBackToDashboard={() => setCurrentPage("dashboard")}
+              />
+            )}
+
+            {currentPage === "all-details" && (
+              <AllUserDetailsPage
+                allUserDetails={allUserDetails}
+                loading={loading}
+                userEmail={userEmail}
+                handleEditAllDetails={(user) => {
+                  setEditUserEmail(user.email);
+                  setFormData(user);
+                  setCurrentPage("add-edit");
+                }}
+                handleDeleteUser={handleDeleteUser}
+              />
+            )}
+
+            {/* ✅ NEW ASSET MANAGEMENT PAGES */}
+            {currentPage === "asset-management" && (
+              <AssetManagementPage setCurrentPage={setCurrentPage} />
+            )}
+
+            {currentPage === "asset-form" && (
+              <AssetFormPage setCurrentPage={setCurrentPage} />
+            )}
+
           </div>
         </main>
       </div>

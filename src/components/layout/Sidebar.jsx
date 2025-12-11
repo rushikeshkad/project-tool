@@ -1,6 +1,6 @@
 // src/components/layout/Sidebar.jsx
 import React from "react";
-import { LayoutDashboard, FileEdit, List, CalendarDays } from "lucide-react";
+import { LayoutDashboard, FileEdit, List, CalendarDays, Package } from "lucide-react";
 
 const Sidebar = ({ currentPage, setCurrentPage, setError, handleEditMyDetails }) => {
   const items = [
@@ -8,6 +8,8 @@ const Sidebar = ({ currentPage, setCurrentPage, setError, handleEditMyDetails })
     { id: "add-edit", icon: FileEdit, label: "My Details" },
     { id: "all-details", icon: List, label: "All User Details" },
     { id: "leave-records", icon: CalendarDays, label: "Leave Records" },
+    { id: "asset-management", icon: Package, label: "Asset Management" },
+    
   ];
 
   return (

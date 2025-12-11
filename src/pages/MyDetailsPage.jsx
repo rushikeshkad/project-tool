@@ -1,14 +1,14 @@
-// src/pages/MyDetailsPage.jsx
 import React from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Edit2, Plus, Loader2 } from "lucide-react";
 
 const MyDetailsPage = ({
   currentUserDetails,
   formData,
   setFormData,
-  loading,
   handleSaveDetails,
-  goBackToDashboard,
+  handleEditMyDetails,
+  loading,
+  setCurrentPage,
 }) => {
   return (
     <div className="animate-fadeIn">
@@ -17,8 +17,6 @@ const MyDetailsPage = ({
       </h1>
       <div className="bg-white rounded-2xl shadow-lg p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* all the input fields – same as before */}
-          {/* Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Name <span className="text-red-500">*</span>
@@ -32,11 +30,8 @@ const MyDetailsPage = ({
             />
           </div>
 
-          {/* Employee ID */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Employee ID
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Employee ID</label>
             <input
               type="number"
               value={formData.empId}
@@ -46,147 +41,99 @@ const MyDetailsPage = ({
             />
           </div>
 
-          {/* Machine IP Address */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Machine IP Address
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Machine IP Address</label>
             <input
               type="text"
               value={formData.machineIpAddress}
-              onChange={(e) =>
-                setFormData({ ...formData, machineIpAddress: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, machineIpAddress: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="e.g., 192.168.1.100"
             />
           </div>
 
-          {/* Device Hostname */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Device Hostname
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Device Hostname</label>
             <input
               type="text"
               value={formData.deviceHostName}
-              onChange={(e) =>
-                setFormData({ ...formData, deviceHostName: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, deviceHostName: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter device hostname"
             />
           </div>
 
-          {/* Client VPN Username */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Client VPN Username
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Client VPN Username</label>
             <input
               type="text"
               value={formData.clientVpnUsername}
-              onChange={(e) =>
-                setFormData({ ...formData, clientVpnUsername: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, clientVpnUsername: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter VPN username"
             />
           </div>
 
-          {/* Asset ID */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Asset ID
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Asset ID</label>
             <input
               type="text"
               value={formData.assetId}
-              onChange={(e) =>
-                setFormData({ ...formData, assetId: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, assetId: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter asset ID"
             />
           </div>
 
-          {/* Contact Number */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Contact Number
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
             <input
               type="tel"
               value={formData.contactNo}
-              onChange={(e) =>
-                setFormData({ ...formData, contactNo: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, contactNo: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter contact number"
             />
           </div>
 
-          {/* BitLocker Password */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              BitLocker Password
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">BitLocker Password</label>
             <input
               type="password"
               value={formData.bitLockerPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, bitLockerPassword: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, bitLockerPassword: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter BitLocker password"
             />
           </div>
 
-          {/* Location */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Location
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
             <input
               type="text"
               value={formData.location}
-              onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter location"
             />
           </div>
 
-          {/* VDI Physical Machine Location */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              VDI Physical Machine Location
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">VDI Physical Machine Location</label>
             <input
               type="text"
               value={formData.vdiPhysicalMachineLocation}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  vdiPhysicalMachineLocation: e.target.value,
-                })
-              }
+              onChange={(e) => setFormData({ ...formData, vdiPhysicalMachineLocation: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter VDI location"
             />
           </div>
 
-          {/* Work Mode */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Work Mode (HWFH/PWFH)
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Work Mode (HWFH/PWFH)</label>
             <select
               value={formData.hwfhPwfH}
-              onChange={(e) =>
-                setFormData({ ...formData, hwfhPwfH: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, hwfhPwfH: e.target.value })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
             >
               <option value="">Select Work Mode</option>
@@ -194,6 +141,54 @@ const MyDetailsPage = ({
               <option value="PWFH">PWFH (Permanent Work From Home)</option>
               <option value="Office">Office</option>
             </select>
+          </div>
+        </div>
+
+        <div className="mt-8 mb-4">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Leave Balance</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Planned Leave (PL)
+            </label>
+            <input
+              type="number"
+              value={formData.pl}
+              onChange={(e) => setFormData({ ...formData, pl: e.target.value })}
+              className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+              placeholder="Enter planned leave"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Unplanned Leave (UL)
+            </label>
+            <input
+              type="number"
+              value={formData.ul}
+              onChange={(e) => setFormData({ ...formData, ul: e.target.value })}
+              className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+              placeholder="Enter unplanned leave"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Floating Leave (FL)
+            </label>
+            <input
+              type="number"
+              value={formData.fl}
+              onChange={(e) => setFormData({ ...formData, fl: e.target.value })}
+              className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+              placeholder="Enter floating leave"
+              min="0"
+            />
           </div>
         </div>
 
@@ -213,7 +208,7 @@ const MyDetailsPage = ({
             )}
           </button>
           <button
-            onClick={goBackToDashboard}
+            onClick={() => setCurrentPage("dashboard")}
             className="px-8 py-3 bg-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-400 transition-all duration-300"
           >
             Cancel
