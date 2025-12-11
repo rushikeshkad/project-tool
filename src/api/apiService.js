@@ -81,7 +81,11 @@ export const leaveService = {
   return api.delete(`api/[controller]/${userId}`, {
     params: { year, month },
   });
-}
+},
+ async applyLeave(payload) {
+    const res = await api.post("api/[controller]/apply", payload);
+    return res.data;
+  }
 
 
 
