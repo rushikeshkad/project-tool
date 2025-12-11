@@ -6,13 +6,13 @@ import api from "./apiConfig";
 // ---------- AUTH ----------
 export const authService = {
   async login(email, password) {
-    const response = await api.post("/auth/login", { email, password });
+    const response = await api.post("/api/[controller]/login", { email, password });
     // adjust according to your backend response shape
     return response.data;
   },
 
   async register(name, email, password, confirmPassword) {
-    const response = await api.post("/auth/register", {
+    const response = await api.post("/api/[controller]/register", {
       name,
       email,
       password,
@@ -22,30 +22,30 @@ export const authService = {
   },
 
   async logout() {
-    await api.post("/auth/logout");
+    await api.post("/api/[controller]/logout");
   },
 };
 
 // ---------- USER DETAILS ----------
 export const userDetailsService = {
   async getByEmail(email) {
-    const response = await api.get(`/userdetails/${encodeURIComponent(email)}`);
+    const response = await api.get(`/api/[controller]/${encodeURIComponent(email)}`);
     return response.data;
   },
 
   async getAll() {
-    const response = await api.get("/userdetails");
+    const response = await api.get("/api/[controller]/all");
     return response.data;
   },
 
   async updateSelf(details) {
-    const response = await api.put("/userdetails/self", details);
+    const response = await api.put("/api/[controller]/add-or-update", details);
     return response.data;
   },
 
   async updateAdmin(email, details) {
     const response = await api.put(
-      `/userdetails/admin/${encodeURIComponent(email)}`,
+      `/api/[controller]/admin/${encodeURIComponent(email)}`,
       details
     );
     return response.data;
@@ -53,7 +53,7 @@ export const userDetailsService = {
 
   async delete(email) {
     const response = await api.delete(
-      `/userdetails/${encodeURIComponent(email)}`
+      `/api/[controller]/${encodeURIComponent(email)}`
     );
     return response.data;
   },
@@ -63,7 +63,7 @@ export const userDetailsService = {
 export const leaveService = {
   // year = "2025", month = "03" etc.
   async getByYearMonth(year, month) {
-    const response = await api.get("/leaves", {
+    const response = await api.get("api/[controller]", {
       params: {
         year,
         month, // backend should accept "01".."12" or convert as needed
@@ -73,12 +73,12 @@ export const leaveService = {
   },
 
     async update(userId, payload) {
-    const res = await api.put(`/leaves/${userId}`, payload);
+    const res = await api.put(`api/[controller]/${userId}`, payload);
     return res.data;
   },
 
-delete(userId, year, month) {
-  return api.delete(`/leaves/${userId}`, {
+  async delete(userId, year, month) {
+  return api.delete(`api/[controller]/${userId}`, {
     params: { year, month },
   });
 }
@@ -90,32 +90,32 @@ delete(userId, year, month) {
 export const assetService = {
   // GET /assets
   async getAll() {
-    const response = await api.get("/assets");
+    const response = await api.get("api/[controller]");
     // be defensive: return an array to avoid `.length` on undefined
     return Array.isArray(response.data) ? response.data : [];
   },
 
   // GET /assets/:id
   async getById(id) {
-    const response = await api.get(`/assets/${encodeURIComponent(id)}`);
+    const response = await api.get(`api/[controller]/assets/${encodeURIComponent(id)}`);
     return response.data ?? null;
   },
 
   // POST /assets
   async create(asset) {
-    const response = await api.post("/assets", asset);
+    const response = await api.post("api/[controller]", asset);
     return response.data;
   },
 
   // PUT /assets/:id
   async update(id, asset) {
-    const response = await api.put(`/assets/${encodeURIComponent(id)}`, asset);
+    const response = await api.put(`api/[controller]/${encodeURIComponent(id)}`, asset);
     return response.data;
   },
 
   // DELETE /assets/:id
   async delete(id) {
-    const response = await api.delete(`/assets/${encodeURIComponent(id)}`);
+    const response = await api.delete(`api/[controller]/${encodeURIComponent(id)}`);
     return response.data;
   },
 };
