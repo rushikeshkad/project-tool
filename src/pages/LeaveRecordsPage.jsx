@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
 import MonthYearPicker from "../components/layout/MonthYearPicker";
-import { mockLeaveRecords } from "../utils/mockData";
 import { leaveService } from "../api/apiService";
 import LeaveModal from "../components/layout/LeaveModal";
 import { Edit2, Trash2, Plus, Calendar } from "lucide-react";
@@ -23,8 +22,7 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
   // Process and group leaves by user with multi-row display logic
   const processedLeaveData = useMemo(() => {
     const dataSource = leaveRecordsData?.length > 0 ? leaveRecordsData : 
-                       leaveRecords?.length > 0 ? leaveRecords : 
-                       mockLeaveRecords;
+                       leaveRecords?.length > 0 ? leaveRecords : [];
 
     // Group by userId
     const grouped = dataSource.reduce((acc, record) => {
@@ -126,7 +124,11 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
       setLeaveRecords && setLeaveRecords(data);
     } catch (err) {
       console.error("Error fetching leave records:", err);
-      setFetchError("");
+      setFetchError(
+        err.response?.data?.message || 
+        err.message || 
+        "Failed to fetch leave records. Please try again."
+      );
       setLeaveRecordsData([]);
     } finally {
       setLoadingLeaves(false);
@@ -182,23 +184,21 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
       setModalSaving(true);
       setModalError("");
 
-      // Call API to apply/edit leaves
-      try {
-        if (modalMode === "apply") {
-          await leaveService.applyLeave(payload);
-        } else {
-          await leaveService.update(payload.userId, payload);
-        }
-        await refreshLeaves();
-        handleCloseModal();
-      } catch (err) {
-        console.error("Error:", err);
-        if (!err.response) {
-          setModalError("Network not connected – changes not saved to server.");
-        } else {
-          setModalError(err.response?.data?.message || "Failed to process leave");
-        }
+      if (modalMode === "apply") {
+        await leaveService.applyLeave(payload);
+      } else {
+        await leaveService.update(payload.userId, payload);
       }
+      
+      await refreshLeaves();
+      handleCloseModal();
+    } catch (err) {
+      console.error("Error processing leave:", err);
+      setModalError(
+        err.response?.data?.message || 
+        err.message || 
+        "Failed to process leave. Please try again."
+      );
     } finally {
       setModalSaving(false);
     }
@@ -216,11 +216,12 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
       await leaveService.delete(user.userId, year, month);
       await refreshLeaves();
     } catch (err) {
-      if (!err?.response) {
-        setFetchError("Network not connected – deleted locally.");
-      } else {
-        setFetchError(err?.response?.data?.message || "Failed to delete");
-      }
+      console.error("Error deleting leave:", err);
+      setFetchError(
+        err.response?.data?.message || 
+        err.message || 
+        "Failed to delete leave records. Please try again."
+      );
     } finally {
       setListSaving(false);
     }
@@ -270,8 +271,9 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
 
       {/* Error Message */}
       {fetchError && (
-        <div className="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 rounded-lg">
-          {fetchError}
+        <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg">
+          <p className="font-medium">Error</p>
+          <p className="text-sm mt-1">{fetchError}</p>
         </div>
       )}
 
@@ -287,6 +289,11 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords }) => {
             <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
               <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg">No leave records found for this month.</p>
+              {fetchError && (
+                <p className="text-gray-400 text-sm mt-2">
+                  Please check your connection or try again later.
+                </p>
+              )}
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">

@@ -257,7 +257,7 @@ const App = () => {
 
 
   // ❌ FIX: AuthScreen must show when NOT authenticated
-  if (isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <AuthScreen
         isLogin={isLogin}

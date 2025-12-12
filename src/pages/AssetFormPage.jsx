@@ -80,7 +80,11 @@ const AssetFormPage = ({ setCurrentPage }) => {
     };
 
     try {
-      if (editingAsset && (editingAsset.id !== undefined && editingAsset.id !== null)) {
+      if (
+        editingAsset &&
+        editingAsset.id !== undefined &&
+        editingAsset.id !== null
+      ) {
         await assetService.update(editingAsset.id, payload);
       } else {
         await assetService.create(payload);
@@ -90,7 +94,9 @@ const AssetFormPage = ({ setCurrentPage }) => {
       setCurrentPage("assets");
     } catch (err) {
       console.error("Failed to save asset:", err);
-      setError(err?.response?.data?.message || err?.message || "Failed to save asset");
+      setError(
+        err?.response?.data?.message || err?.message || "Failed to save asset"
+      );
     } finally {
       setLoading(false);
     }
@@ -117,29 +123,41 @@ const AssetFormPage = ({ setCurrentPage }) => {
             <input
               type="text"
               value={assetForm.name}
-              onChange={(e) => setAssetForm({ ...assetForm, name: e.target.value })}
+              onChange={(e) =>
+                setAssetForm({ ...assetForm, name: e.target.value })
+              }
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter asset name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Category
+            </label>
             <select
               value={assetForm.category}
-              onChange={(e) => setAssetForm({ ...assetForm, category: Number(e.target.value) })}
+              onChange={(e) =>
+                setAssetForm({ ...assetForm, category: Number(e.target.value) })
+              }
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
             >
-              <option value={AssetCategory.PhysicalMachine}>Physical Machine</option>
+              <option value={AssetCategory.PhysicalMachine}>
+                Physical Machine
+              </option>
               <option value={AssetCategory.ClientVDI}>Client VDI</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Type
+            </label>
             <select
               value={assetForm.type}
-              onChange={(e) => setAssetForm({ ...assetForm, type: Number(e.target.value) })}
+              onChange={(e) =>
+                setAssetForm({ ...assetForm, type: Number(e.target.value) })
+              }
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
             >
               <option value={AssetType.Hardware}>Hardware</option>
@@ -149,12 +167,17 @@ const AssetFormPage = ({ setCurrentPage }) => {
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Version {assetForm.type === AssetType.Software && <span className="text-gray-500">(for software)</span>}
+              Version{" "}
+              {assetForm.type === AssetType.Software && (
+                <span className="text-gray-500">(for software)</span>
+              )}
             </label>
             <input
               type="text"
               value={assetForm.version}
-              onChange={(e) => setAssetForm({ ...assetForm, version: e.target.value })}
+              onChange={(e) =>
+                setAssetForm({ ...assetForm, version: e.target.value })
+              }
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="e.g., v2.0.1"
             />
@@ -162,11 +185,16 @@ const AssetFormPage = ({ setCurrentPage }) => {
 
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Specifications {assetForm.type === AssetType.Hardware && <span className="text-gray-500">(for hardware)</span>}
+              Specifications{" "}
+              {assetForm.type === AssetType.Hardware && (
+                <span className="text-gray-500">(for hardware)</span>
+              )}
             </label>
             <textarea
               value={assetForm.specifications}
-              onChange={(e) => setAssetForm({ ...assetForm, specifications: e.target.value })}
+              onChange={(e) =>
+                setAssetForm({ ...assetForm, specifications: e.target.value })
+              }
               rows={4}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter detailed specifications..."
@@ -193,7 +221,7 @@ const AssetFormPage = ({ setCurrentPage }) => {
           <button
             onClick={() => {
               resetForm();
-              setCurrentPage("assets");
+              setCurrentPage("asset-management"); // ← Redirect to AssetManagement.jsx
             }}
             className="px-8 py-3 bg-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-400 transition-all duration-300"
           >

@@ -5,14 +5,16 @@ import api from "./apiConfig";
 
 // ---------- AUTH ----------
 export const authService = {
-  async login(email, password) {
-    const response = await api.post("/api/[controller]/login", { email, password });
-    // adjust according to your backend response shape
+  login: async (email, password) => {
+    const response = await api.post('/auth/login', {
+      email,
+      password
+    });
     return response.data;
   },
 
   async register(name, email, password, confirmPassword) {
-    const response = await api.post("/api/[controller]/register", {
+    const response = await api.post("/auth/register", {
       name,
       email,
       password,
@@ -22,30 +24,30 @@ export const authService = {
   },
 
   async logout() {
-    await api.post("/api/[controller]/logout");
+    await api.post("/auth/logout");
   },
 };
 
 // ---------- USER DETAILS ----------
 export const userDetailsService = {
   async getByEmail(email) {
-    const response = await api.get(`/api/[controller]/${encodeURIComponent(email)}`);
+    const response = await api.get(`/userdetails/${encodeURIComponent(email)}`);
     return response.data;
   },
 
   async getAll() {
-    const response = await api.get("/api/[controller]/all");
+    const response = await api.get("/userdetails/all");
     return response.data;
   },
 
   async updateSelf(details) {
-    const response = await api.put("/api/[controller]/add-or-update", details);
+    const response = await api.put("/userdetails/add-or-update", details);
     return response.data;
   },
 
   async updateAdmin(email, details) {
     const response = await api.put(
-      `/api/[controller]/admin/${encodeURIComponent(email)}`,
+      `/userdetails/admin/${encodeURIComponent(email)}`,
       details
     );
     return response.data;
@@ -53,7 +55,7 @@ export const userDetailsService = {
 
   async delete(email) {
     const response = await api.delete(
-      `/api/[controller]/${encodeURIComponent(email)}`
+      `/userdetails/${encodeURIComponent(email)}`
     );
     return response.data;
   },
@@ -63,7 +65,7 @@ export const userDetailsService = {
 export const leaveService = {
   // year = "2025", month = "03" etc.
   async getByYearMonth(year, month) {
-    const response = await api.get("api/[controller]", {
+    const response = await api.get("/LeavePlan", {
       params: {
         year,
         month, // backend should accept "01".."12" or convert as needed
@@ -73,17 +75,17 @@ export const leaveService = {
   },
 
     async update(userId, payload) {
-    const res = await api.put(`api/[controller]/${userId}`, payload);
+    const res = await api.put(`/LeavePlan/${userId}`, payload);
     return res.data;
   },
 
   async delete(userId, year, month) {
-  return api.delete(`api/[controller]/${userId}`, {
+  return api.delete(`/LeavePlan/${userId}`, {
     params: { year, month },
   });
 },
  async applyLeave(payload) {
-    const res = await api.post("api/[controller]/apply", payload);
+    const res = await api.post("/LeavePlan/apply", payload);
     return res.data;
   }
 
@@ -94,32 +96,32 @@ export const leaveService = {
 export const assetService = {
   // GET /assets
   async getAll() {
-    const response = await api.get("api/[controller]");
+    const response = await api.get("/assets");
     // be defensive: return an array to avoid `.length` on undefined
     return Array.isArray(response.data) ? response.data : [];
   },
 
   // GET /assets/:id
   async getById(id) {
-    const response = await api.get(`api/[controller]/assets/${encodeURIComponent(id)}`);
+    const response = await api.get(`/assets/${encodeURIComponent(id)}`);
     return response.data ?? null;
   },
 
   // POST /assets
   async create(asset) {
-    const response = await api.post("api/[controller]", asset);
+    const response = await api.post("/assets", asset);
     return response.data;
   },
 
   // PUT /assets/:id
   async update(id, asset) {
-    const response = await api.put(`api/[controller]/${encodeURIComponent(id)}`, asset);
+    const response = await api.put(`/assets/${encodeURIComponent(id)}`, asset);
     return response.data;
   },
 
   // DELETE /assets/:id
   async delete(id) {
-    const response = await api.delete(`api/[controller]/${encodeURIComponent(id)}`);
+    const response = await api.delete(`/assets/${encodeURIComponent(id)}`);
     return response.data;
   },
 };
