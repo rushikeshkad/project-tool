@@ -13,8 +13,8 @@ export const authService = {
     return response.data;
   },
 
-  async register(name, email, password, confirmPassword) {
-    const response = await api.post("/auth/register", {
+ async register(name, email, password, confirmPassword) {
+    const response = await api.post("/Auth/register", {
       name,
       email,
       password,
@@ -31,23 +31,23 @@ export const authService = {
 // ---------- USER DETAILS ----------
 export const userDetailsService = {
   async getByEmail(email) {
-    const response = await api.get(`/userdetails/${encodeURIComponent(email)}`);
+    const response = await api.get(`/UserDetails/${encodeURIComponent(email)}`);
     return response.data;
   },
 
   async getAll() {
-    const response = await api.get("/userdetails/all");
+    const response = await api.get("/UserDetails/all");
     return response.data;
   },
 
   async updateSelf(details) {
-    const response = await api.put("/userdetails/add-or-update", details);
+    const response = await api.post("/UserDetails/add-or-update", details);
     return response.data;
   },
 
   async updateAdmin(email, details) {
     const response = await api.put(
-      `/userdetails/admin/${encodeURIComponent(email)}`,
+      `/UserDetails/admin/${encodeURIComponent(email)}`,
       details
     );
     return response.data;
@@ -55,7 +55,7 @@ export const userDetailsService = {
 
   async delete(email) {
     const response = await api.delete(
-      `/userdetails/${encodeURIComponent(email)}`
+      `/UserDetails/${encodeURIComponent(email)}`
     );
     return response.data;
   },
@@ -63,65 +63,54 @@ export const userDetailsService = {
 
 // ---------- LEAVE SERVICE ----------
 export const leaveService = {
-  // year = "2025", month = "03" etc.
   async getByYearMonth(year, month) {
     const response = await api.get("/LeavePlan", {
-      params: {
-        year,
-        month, // backend should accept "01".."12" or convert as needed
-      },
+      params: { year, month },
     });
-    return response.data; // expected: array of leave records
+    return response.data;
   },
 
-    async update(userId, payload) {
-    const res = await api.put(`/LeavePlan/${userId}`, payload);
-    return res.data;
+  async applyLeave(payload) {
+    const response = await api.post("/LeavePlan/apply", payload);
+    return response.data;
+  },
+
+  async update(userId, payload) {
+    const response = await api.put(`/LeavePlan/${userId}`, payload);
+    return response.data;
   },
 
   async delete(userId, year, month) {
-  return api.delete(`/LeavePlan/${userId}`, {
-    params: { year, month },
-  });
-},
- async applyLeave(payload) {
-    const res = await api.post("/LeavePlan/apply", payload);
-    return res.data;
-  }
-
-
-
+    const response = await api.delete(`/LeavePlan/${userId}`, {
+      params: { year, month },
+    });
+    return response.data;
+  },
 };
 // ---------- ASSET SERVICE ----------
 export const assetService = {
-  // GET /assets
   async getAll() {
-    const response = await api.get("/assets");
-    // be defensive: return an array to avoid `.length` on undefined
+    const response = await api.get("/Assets");
     return Array.isArray(response.data) ? response.data : [];
   },
 
-  // GET /assets/:id
   async getById(id) {
-    const response = await api.get(`/assets/${encodeURIComponent(id)}`);
-    return response.data ?? null;
+    const response = await api.get(`/Assets/${id}`);
+    return response.data;
   },
 
-  // POST /assets
   async create(asset) {
-    const response = await api.post("/assets", asset);
+    const response = await api.post("/Assets", asset);
     return response.data;
   },
 
-  // PUT /assets/:id
   async update(id, asset) {
-    const response = await api.put(`/assets/${encodeURIComponent(id)}`, asset);
+    const response = await api.put(`/Assets/${id}`, asset);
     return response.data;
   },
 
-  // DELETE /assets/:id
   async delete(id) {
-    const response = await api.delete(`/assets/${encodeURIComponent(id)}`);
+    const response = await api.delete(`/Assets/${id}`);
     return response.data;
   },
 };

@@ -20,6 +20,14 @@ const LeaveModal = ({
     { leaveType: "Planned Leave", fromDate: "", toDate: "", id: Date.now() }
   ]);
 
+  // Editable leave balances (for edit mode)
+  const [editableBalances, setEditableBalances] = useState({
+    totalLeaves: 0,
+    plannedLeaves: 0,
+    unplannedLeaves: 0,
+    floatingHoliday: 0,
+  });
+
   const selectedUser = useMemo(
     () => users.find((u) => u.userId === selectedUserId) || null,
     [users, selectedUserId]
@@ -28,15 +36,24 @@ const LeaveModal = ({
   const availableLeaves = useMemo(() => {
     if (!selectedUser) return { planned: 0, unplanned: 0, floating: 0, total: 0 };
     
+    // In edit mode, use editable balances, otherwise use user's current balances
+    if (mode === "edit") {
+      return {
+        planned: editableBalances.plannedLeaves,
+        unplanned: editableBalances.unplannedLeaves,
+        floating: editableBalances.floatingHoliday,
+        total: editableBalances.totalLeaves,
+      };
+    }
+    
     return {
       planned: selectedUser.plannedLeaves || 0,
       unplanned: selectedUser.unplannedLeaves || 0,
       floating: selectedUser.floatingHoliday || 0,
       total: selectedUser.leaveBalance || 0,
     };
-  }, [selectedUser]);
+  }, [selectedUser, mode, editableBalances]);
 
-  // Calculate days for each entry
   const calculateDays = (fromDate, toDate) => {
     if (!fromDate || !toDate) return 0;
     const start = new Date(fromDate);
@@ -49,7 +66,6 @@ const LeaveModal = ({
     return diffDays + 1;
   };
 
-  // Calculate total days by type
   const totalsByType = useMemo(() => {
     const totals = { "Planned Leave": 0, "Unplanned Leave": 0, "Floating Holiday": 0 };
     leaveEntries.forEach(entry => {
@@ -64,13 +80,31 @@ const LeaveModal = ({
 
     if (mode === "edit" && record) {
       setSelectedUserId(record.userId);
-      // If editing, load existing leave entry
-      setLeaveEntries([{
-        leaveType: record.leaveType || "Planned Leave",
-        fromDate: record.fromDate ? record.fromDate.slice(0, 10) : "",
-        toDate: record.toDate ? record.toDate.slice(0, 10) : "",
-        id: Date.now()
-      }]);
+      
+      // Set editable balances
+      setEditableBalances({
+        totalLeaves: record.leaveBalance || 0,
+        plannedLeaves: record.plannedLeaves || 0,
+        unplannedLeaves: record.unplannedLeaves || 0,
+        floatingHoliday: record.floatingHoliday || 0,
+      });
+      
+      // Load existing applications if available
+      if (record.leaveApplications && record.leaveApplications.length > 0) {
+        setLeaveEntries(record.leaveApplications.map(app => ({
+          leaveType: app.leaveType,
+          fromDate: app.fromDate ? app.fromDate.slice(0, 10) : "",
+          toDate: app.toDate ? app.toDate.slice(0, 10) : "",
+          id: app.id || Date.now() + Math.random()
+        })));
+      } else {
+        setLeaveEntries([{
+          leaveType: record.leaveType || "Planned Leave",
+          fromDate: record.fromDate ? record.fromDate.slice(0, 10) : "",
+          toDate: record.toDate ? record.toDate.slice(0, 10) : "",
+          id: Date.now()
+        }]);
+      }
     } else {
       if (users.length > 0) {
         setSelectedUserId(users[0].userId);
@@ -78,6 +112,12 @@ const LeaveModal = ({
       setLeaveEntries([
         { leaveType: "Planned Leave", fromDate: "", toDate: "", id: Date.now() }
       ]);
+      setEditableBalances({
+        totalLeaves: 0,
+        plannedLeaves: 0,
+        unplannedLeaves: 0,
+        floatingHoliday: 0,
+      });
     }
   }, [isOpen, mode, record, users]);
 
@@ -146,10 +186,11 @@ const LeaveModal = ({
       userId: selectedUser.userId,
       userName: selectedUser.userName,
       email: selectedUser.email,
-      leaveBalance: selectedUser.leaveBalance,
-      plannedLeaves: selectedUser.plannedLeaves || 0,
-      unplannedLeaves: selectedUser.unplannedLeaves || 0,
-      floatingHoliday: selectedUser.floatingHoliday || 0,
+      // Include updated balances if in edit mode
+      leaveBalance: mode === "edit" ? editableBalances.totalLeaves : selectedUser.leaveBalance,
+      plannedLeaves: mode === "edit" ? editableBalances.plannedLeaves : selectedUser.plannedLeaves || 0,
+      unplannedLeaves: mode === "edit" ? editableBalances.unplannedLeaves : selectedUser.unplannedLeaves || 0,
+      floatingHoliday: mode === "edit" ? editableBalances.floatingHoliday : selectedUser.floatingHoliday || 0,
       appliedLeaves: selectedUser.appliedLeaves || 0,
       leaveEntries: leaveEntries.map(entry => ({
         leaveType: entry.leaveType,
@@ -201,6 +242,7 @@ const LeaveModal = ({
                              outline-none transition-all bg-white"
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
+                  disabled={mode === "edit"}
                 >
                   <option value="">-- Select User --</option>
                   {users.map((u) => (
@@ -225,22 +267,84 @@ const LeaveModal = ({
 
             {/* Available Leaves Summary */}
             {selectedUser && (
-              <div className="mt-4 grid grid-cols-4 gap-3">
-                <div className="bg-white p-3 rounded-lg text-center shadow-sm">
-                  <p className="text-xs text-gray-600 mb-1">Total</p>
-                  <p className="text-xl font-bold text-gray-800">{availableLeaves.total}</p>
+              <div className="mt-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold text-gray-800">Leave Balances</h4>
+                  {mode === "edit" && (
+                    <span className="text-xs text-gray-600">Edit balances below</span>
+                  )}
                 </div>
-                <div className="bg-white p-3 rounded-lg text-center shadow-sm">
-                  <p className="text-xs text-gray-600 mb-1">Planned (PL)</p>
-                  <p className="text-xl font-bold text-blue-600">{availableLeaves.planned}</p>
-                </div>
-                <div className="bg-white p-3 rounded-lg text-center shadow-sm">
-                  <p className="text-xs text-gray-600 mb-1">Unplanned (UL)</p>
-                  <p className="text-xl font-bold text-orange-600">{availableLeaves.unplanned}</p>
-                </div>
-                <div className="bg-white p-3 rounded-lg text-center shadow-sm">
-                  <p className="text-xs text-gray-600 mb-1">Floating (FH)</p>
-                  <p className="text-xl font-bold text-green-600">{availableLeaves.floating}</p>
+                
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="bg-white p-3 rounded-lg text-center shadow-sm">
+                    <p className="text-xs text-gray-600 mb-1">Total</p>
+                    {mode === "edit" ? (
+                      <input
+                        type="number"
+                        min="0"
+                        value={editableBalances.totalLeaves}
+                        onChange={(e) => setEditableBalances({
+                          ...editableBalances,
+                          totalLeaves: parseInt(e.target.value) || 0
+                        })}
+                        className="text-xl font-bold text-gray-800 w-full text-center border-2 border-gray-300 rounded px-2"
+                      />
+                    ) : (
+                      <p className="text-xl font-bold text-gray-800">{availableLeaves.total}</p>
+                    )}
+                  </div>
+                  <div className="bg-white p-3 rounded-lg text-center shadow-sm">
+                    <p className="text-xs text-gray-600 mb-1">Planned (PL)</p>
+                    {mode === "edit" ? (
+                      <input
+                        type="number"
+                        min="0"
+                        value={editableBalances.plannedLeaves}
+                        onChange={(e) => setEditableBalances({
+                          ...editableBalances,
+                          plannedLeaves: parseInt(e.target.value) || 0
+                        })}
+                        className="text-xl font-bold text-blue-600 w-full text-center border-2 border-blue-300 rounded px-2"
+                      />
+                    ) : (
+                      <p className="text-xl font-bold text-blue-600">{availableLeaves.planned}</p>
+                    )}
+                  </div>
+                  <div className="bg-white p-3 rounded-lg text-center shadow-sm">
+                    <p className="text-xs text-gray-600 mb-1">Unplanned (UL)</p>
+                    {mode === "edit" ? (
+                      <input
+                        type="number"
+                        min="0"
+                        value={editableBalances.unplannedLeaves}
+                        onChange={(e) => setEditableBalances({
+                          ...editableBalances,
+                          unplannedLeaves: parseInt(e.target.value) || 0
+                        })}
+                        className="text-xl font-bold text-orange-600 w-full text-center border-2 border-orange-300 rounded px-2"
+                      />
+                    ) : (
+                      <p className="text-xl font-bold text-orange-600">{availableLeaves.unplanned}</p>
+                    )}
+                  </div>
+                  <div className="bg-white p-3 rounded-lg text-center shadow-sm">
+                    <p className="text-xs text-gray-600 mb-1">Floating (FH)</p>
+                    {mode === "edit" ? (
+                      <input
+                        type="number"
+                        min="0"
+                        max="2"
+                        value={editableBalances.floatingHoliday}
+                        onChange={(e) => setEditableBalances({
+                          ...editableBalances,
+                          floatingHoliday: parseInt(e.target.value) || 0
+                        })}
+                        className="text-xl font-bold text-green-600 w-full text-center border-2 border-green-300 rounded px-2"
+                      />
+                    ) : (
+                      <p className="text-xl font-bold text-green-600">{availableLeaves.floating}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
