@@ -31,21 +31,27 @@ export const authService = {
 
 // ---------- USER DETAILS ----------
 export const userDetailsService = {
+  // GET /api/UserDetails/{email}
   async getByEmail(email) {
     const response = await api.get(`/UserDetails/${encodeURIComponent(email)}`);
     return response.data;
   },
 
+  // GET /api/UserDetails/all
   async getAll() {
     const response = await api.get("/UserDetails/all");
     return response.data;
   },
 
+  // POST /api/UserDetails/add-or-update
+  // This is for SELF update (current logged-in user)
   async updateSelf(details) {
     const response = await api.post("/UserDetails/add-or-update", details);
     return response.data;
   },
 
+  // PUT /api/UserDetails/admin/{email}
+  // This is for ADMIN to update ANY user
   async updateAdmin(email, details) {
     const response = await api.put(
       `/UserDetails/admin/${encodeURIComponent(email)}`,
@@ -54,6 +60,7 @@ export const userDetailsService = {
     return response.data;
   },
 
+  // DELETE /api/UserDetails/{email}
   async delete(email) {
     const response = await api.delete(
       `/UserDetails/${encodeURIComponent(email)}`
@@ -87,16 +94,15 @@ export const leaveService = {
       );
       
       const responses = await Promise.all(promises);
-      return responses[responses.length - 1].data; // Return last response
+      return responses[responses.length - 1].data;
     }
     
-    // Single entry format (backward compatibility)
     const response = await api.post("/LeavePlan/apply", payload);
     return response.data;
   },
 
   async update(email, payload) {
-    // For update, send updated leave balances
+    // For update, we need to handle both balance updates and new leave entries
     const updatePayload = {
       email: payload.email,
       leavesInHandFL: payload.leavesInHandFL,
@@ -104,12 +110,9 @@ export const leaveService = {
       leavesInHandUL: payload.leavesInHandUL,
     };
     
-    // If there are new leave entries, apply them
     if (payload.leaveEntries && Array.isArray(payload.leaveEntries)) {
-      // First update balances
       await api.put(`/LeavePlan/${encodeURIComponent(email)}`, updatePayload);
       
-      // Then apply new leave entries if any
       const applyPromises = payload.leaveEntries.map(entry => 
         api.post("/LeavePlan/apply", {
           email: payload.email,

@@ -45,7 +45,7 @@ const App = () => {
   const [error, setError] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
-  const [editUserEmail, setEditUserEmail] = useState("");
+  const [editUserEmail, setEditUserEmail] = useState(""); // ✅ Explicitly initialize as empty string
 
   // Leave records
   const [leaveRecords, setLeaveRecords] = useState([]);
@@ -253,6 +253,7 @@ const App = () => {
         fl: currentUserDetails.fl || 0,
       });
     }
+    // ✅ CRITICAL: Clear editUserEmail when user edits their own details
     setEditUserEmail("");
     setCurrentPage("add-edit");
   };
@@ -267,20 +268,42 @@ const App = () => {
       setLoading(true);
       setError("");
 
-      const payload = { ...formData };
+      console.log("=== SAVE DETAILS DEBUG ===");
+      console.log("editUserEmail:", editUserEmail);
+      console.log("userEmail:", userEmail);
+      console.log("Are they equal?", editUserEmail === userEmail);
+      console.log("Is editUserEmail empty?", editUserEmail === "");
+      console.log("=========================");
 
-      if (editUserEmail && editUserEmail !== userEmail) {
-        // Admin editing another user
+      // ✅ FIX: Check if editUserEmail is TRUTHY and DIFFERENT from userEmail
+      const isAdminEdit = editUserEmail && editUserEmail.trim() !== "" && editUserEmail !== userEmail;
+
+      console.log("Is Admin Edit?", isAdminEdit);
+
+      // Prepare payload with email
+      const payload = { 
+        ...formData,
+        email: editUserEmail || userEmail // Include email in payload
+      };
+
+      console.log("Payload:", payload);
+
+      if (isAdminEdit) {
+        // ✅ Admin editing another user - use updateAdmin
+        console.log("✅ Calling updateAdmin for:", editUserEmail);
         await userDetailsService.updateAdmin(editUserEmail, payload);
-        fetchAllUserDetails();
+        await fetchAllUserDetails();
+        setCurrentPage("all-details");
       } else {
-        // User editing their own details
+        // ✅ User editing their own details OR adding new details - use updateSelf
+        console.log("✅ Calling updateSelf (add-or-update) for:", userEmail);
         await userDetailsService.updateSelf(payload);
-        fetchCurrentUserDetails(userEmail);
+        await fetchCurrentUserDetails(userEmail);
+        setCurrentPage("dashboard");
       }
 
-      setCurrentPage(editUserEmail ? "all-details" : "dashboard");
       setEditUserEmail("");
+      setError(""); // Clear any errors
     } catch (err) {
       console.error("Save details error:", err);
       setError(err.response?.data?.message || err.message || "Failed to save details");
@@ -295,8 +318,14 @@ const App = () => {
     try {
       setLoading(true);
       setError("");
+      
+      console.log("Deleting user:", email);
       await userDetailsService.delete(email);
+      
+      // Refresh the list after deletion
       await fetchAllUserDetails();
+      
+      setError(""); // Clear any errors
     } catch (err) {
       console.error("Delete user error:", err);
       setError(err.response?.data?.message || err.message || "Failed to delete user");

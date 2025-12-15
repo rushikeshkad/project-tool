@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, Edit3, Save, Lock, Unlock } from "lucide-react";
+import { userDetailsService } from "../../api/apiService";
 
 const LeaveModal = ({
   isOpen,
@@ -16,22 +17,23 @@ const LeaveModal = ({
 }) => {
   const [selectedUserEmail, setSelectedUserEmail] = useState("");
   
-  // Breakdown entries with dates: array of {type: "FL"/"PL"/"UL", days: number, dateFrom, dateTo}
   const [breakdowns, setBreakdowns] = useState([
     { type: "FL", days: 0, dateFrom: "", dateTo: "", id: Date.now() }
   ]);
 
-  // Editable leave balances (for edit mode only)
   const [editableBalances, setEditableBalances] = useState({
     fl: 0,
     pl: 0,
     ul: 0,
   });
 
-  // Track if balances were changed
+  // ✅ NEW: Track if balance editing is enabled
+  const [balanceEditingEnabled, setBalanceEditingEnabled] = useState(false);
+  const [savingBalances, setSavingBalances] = useState(false);
+  const [balanceError, setBalanceError] = useState("");
+  const [balanceSuccess, setBalanceSuccess] = useState("");
+
   const [balancesChanged, setBalancesChanged] = useState(false);
-  
-  // Track if breakdowns were changed
   const [breakdownsChanged, setBreakdownsChanged] = useState(false);
 
   const selectedUser = useMemo(
@@ -39,11 +41,9 @@ const LeaveModal = ({
     [allUsers, selectedUserEmail]
   );
 
-  // Get leave balances from UserDetails table
   const availableLeaves = useMemo(() => {
     if (!selectedUser) return { FL: 0, PL: 0, UL: 0 };
     
-    // Get from user details (pl, ul, fl fields)
     return {
       FL: selectedUser.fl || 0,
       PL: selectedUser.pl || 0,
@@ -51,7 +51,6 @@ const LeaveModal = ({
     };
   }, [selectedUser]);
 
-  // Calculate business days (excluding Saturday and Sunday)
   const calculateBusinessDays = (from, to) => {
     if (!from || !to) return 0;
     const start = new Date(from);
@@ -65,7 +64,6 @@ const LeaveModal = ({
     
     while (current <= end) {
       const dayOfWeek = current.getDay();
-      // 0 = Sunday, 6 = Saturday
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         count++;
       }
@@ -75,7 +73,6 @@ const LeaveModal = ({
     return count;
   };
 
-  // Calculate totals by type from breakdowns
   const totalsByType = useMemo(() => {
     const totals = { FL: 0, PL: 0, UL: 0 };
     breakdowns.forEach(breakdown => {
@@ -88,7 +85,7 @@ const LeaveModal = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    console.log("LeaveModal opened - Mode:", mode, "Record:", record, "AllUsers:", allUsers);
+    console.log("LeaveModal opened - Mode:", mode, "Record:", record);
 
     if (mode === "edit" && record) {
       if (!record.email) {
@@ -98,7 +95,6 @@ const LeaveModal = ({
 
       setSelectedUserEmail(record.email);
       
-      // Set editable balances from UserDetails (pl, ul, fl)
       const user = allUsers.find(u => u.email === record.email);
       setEditableBalances({
         fl: user?.fl || record.leavesInHandFL || 0,
@@ -106,7 +102,6 @@ const LeaveModal = ({
         ul: user?.ul || record.leavesInHandUL || 0,
       });
       
-      // Load existing leave entries with dates
       if (record.leaveEntries && Array.isArray(record.leaveEntries) && record.leaveEntries.length > 0) {
         const loadedBreakdowns = [];
         
@@ -128,14 +123,13 @@ const LeaveModal = ({
           { type: "FL", days: 0, dateFrom: "", dateTo: "", id: Date.now() }
         ]);
       } else {
-        // No existing leaves - show empty form
         setBreakdowns([{ type: "FL", days: 0, dateFrom: "", dateTo: "", id: Date.now() }]);
       }
       
       setBalancesChanged(false);
       setBreakdownsChanged(false);
+      setBalanceEditingEnabled(false);
     } else {
-      // Apply mode - select current user by default
       if (currentUserEmail && allUsers.length > 0) {
         const currentUser = allUsers.find(u => u.email === currentUserEmail);
         if (currentUser) {
@@ -151,7 +145,11 @@ const LeaveModal = ({
       setEditableBalances({ fl: 0, pl: 0, ul: 0 });
       setBalancesChanged(false);
       setBreakdownsChanged(false);
+      setBalanceEditingEnabled(false);
     }
+
+    setBalanceError("");
+    setBalanceSuccess("");
   }, [isOpen, mode, record, allUsers, currentUserEmail]);
 
   if (!isOpen) return null;
@@ -179,7 +177,6 @@ const LeaveModal = ({
       
       const updated = { ...b, [field]: value };
       
-      // Auto-calculate business days when dates change
       if (field === 'dateFrom' || field === 'dateTo') {
         const days = calculateBusinessDays(
           field === 'dateFrom' ? value : b.dateFrom,
@@ -199,6 +196,78 @@ const LeaveModal = ({
       [field]: parseFloat(value) || 0
     });
     setBalancesChanged(true);
+    setBalanceSuccess("");
+  };
+
+  // ✅ NEW: Toggle balance editing
+  const toggleBalanceEditing = () => {
+    setBalanceEditingEnabled(!balanceEditingEnabled);
+    setBalanceError("");
+    setBalanceSuccess("");
+  };
+
+  // ✅ NEW: Save leaves in hand to UserDetails table
+  const handleSaveBalances = async () => {
+    if (!selectedUser || !selectedUser.email) {
+      setBalanceError("No user selected");
+      return;
+    }
+
+    if (!balancesChanged) {
+      setBalanceError("No changes to save");
+      return;
+    }
+
+    try {
+      setSavingBalances(true);
+      setBalanceError("");
+      setBalanceSuccess("");
+
+      // Update using admin endpoint
+      const payload = {
+        email: selectedUser.email,
+        name: selectedUser.name,
+        empId: selectedUser.empId,
+        machineIpAddress: selectedUser.machineIpAddress,
+        deviceHostName: selectedUser.deviceHostName,
+        clientVpnUsername: selectedUser.clientVpnUsername,
+        assetId: selectedUser.assetId,
+        contactNo: selectedUser.contactNo,
+        bitLockerPassword: selectedUser.bitLockerPassword,
+        location: selectedUser.location,
+        vdiPhysicalMachineLocation: selectedUser.vdiPhysicalMachineLocation,
+        hwfhPwfH: selectedUser.hwfhPwfH,
+        pl: editableBalances.pl,
+        ul: editableBalances.ul,
+        fl: editableBalances.fl,
+      };
+
+      console.log("Updating leaves in hand:", payload);
+
+      await userDetailsService.updateAdmin(selectedUser.email, payload);
+
+      // Update local state
+      const updatedUser = allUsers.find(u => u.email === selectedUser.email);
+      if (updatedUser) {
+        updatedUser.pl = editableBalances.pl;
+        updatedUser.ul = editableBalances.ul;
+        updatedUser.fl = editableBalances.fl;
+      }
+
+      setBalanceSuccess("✅ Leaves in hand updated successfully!");
+      setBalancesChanged(false);
+      
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => {
+        setBalanceSuccess("");
+      }, 3000);
+
+    } catch (err) {
+      console.error("Error updating balances:", err);
+      setBalanceError(err.response?.data?.message || err.message || "Failed to update leaves in hand");
+    } finally {
+      setSavingBalances(false);
+    }
   };
 
   const handleSubmit = () => {
@@ -209,66 +278,44 @@ const LeaveModal = ({
 
     if (!selectedUser.email) {
       alert("Invalid user selection. Email is missing.");
-      console.error("Selected user missing email:", selectedUser);
       return;
     }
 
-    // In edit mode with only balance changes
-    if (mode === "edit" && balancesChanged && !breakdownsChanged) {
-      // Check if user has no existing leaves
-      const hasNoLeaves = !record.leaveEntries || record.leaveEntries.length === 0;
-      
-      if (hasNoLeaves) {
-        // Only update user details table (pl, ul, fl)
-        const payload = {
-          email: selectedUser.email,
-          onlyUpdateBalances: true,
-          fl: editableBalances.fl,
-          pl: editableBalances.pl,
-          ul: editableBalances.ul,
-        };
-        
-        console.log("Updating only balances in UserDetails:", payload);
-        onSubmit && onSubmit(payload);
+    // Validate breakdowns
+    for (const breakdown of breakdowns) {
+      if (!breakdown.type) {
+        alert("Please select leave type for all breakdowns.");
         return;
-      } else {
-        // User has leaves - just show existing breakdown, don't submit
-        alert("Balance changes saved. Existing leave applications are displayed below.");
+      }
+      if (!breakdown.dateFrom || !breakdown.dateTo) {
+        alert("Please select dates for all breakdowns.");
+        return;
+      }
+      const days = parseInt(breakdown.days) || 0;
+      if (days <= 0) {
+        alert("Please enter valid date ranges. Note: Weekends are excluded.");
         return;
       }
     }
 
-    // Validate breakdowns if they were changed or in apply mode
-    if (breakdownsChanged || mode === "apply") {
-      for (const breakdown of breakdowns) {
-        if (!breakdown.type) {
-          alert("Please select leave type for all breakdowns.");
-          return;
-        }
-        if (!breakdown.dateFrom || !breakdown.dateTo) {
-          alert("Please select dates for all breakdowns.");
-          return;
-        }
-        const days = parseInt(breakdown.days) || 0;
-        if (days <= 0) {
-          alert("Please enter valid date ranges for all breakdowns. Note: Weekends are excluded.");
-          return;
-        }
-      }
+    // Validate against CURRENT available leaves (from editableBalances in edit mode)
+    const currentAvailable = mode === "edit" ? {
+      FL: editableBalances.fl,
+      PL: editableBalances.pl,
+      UL: editableBalances.ul,
+    } : availableLeaves;
 
-      // Validate against available leaves
-      if (totalsByType.FL > availableLeaves.FL) {
-        alert(`Not enough Floating Leave (FL). Only ${availableLeaves.FL} days available.`);
-        return;
-      }
-      if (totalsByType.PL > availableLeaves.PL) {
-        alert(`Not enough Planned Leave (PL). Only ${availableLeaves.PL} days available.`);
-        return;
-      }
-      if (totalsByType.UL > availableLeaves.UL) {
-        alert(`Not enough Unplanned Leave (UL). Only ${availableLeaves.UL} days available.`);
-        return;
-      }
+    if (totalsByType.FL > currentAvailable.FL) {
+      alert(`Not enough Floating Leave (FL). Only ${currentAvailable.FL} days available.`);
+      return;
+    }
+    if (totalsByType.PL > currentAvailable.PL) {
+      alert(`Not enough Planned Leave (PL). Only ${currentAvailable.PL} days available.`);
+      return;
+    }
+    if (totalsByType.UL > currentAvailable.UL) {
+      alert(`Not enough Unplanned Leave (UL). Only ${currentAvailable.UL} days available.`);
+      return;
     }
 
     // Group breakdowns by date range
@@ -288,23 +335,16 @@ const LeaveModal = ({
       });
     });
 
-    // Build payload
     const payload = {
       email: selectedUser.email,
       leaveEntries: Object.values(dateRangeMap).map(range => ({
         dateFrom: `${range.dateFrom}T00:00:00.000Z`,
         dateTo: `${range.dateTo}T00:00:00.000Z`,
         breakdowns: range.breakdowns
-      })),
-      // Include updated balances if changed in edit mode
-      ...(mode === "edit" && balancesChanged && {
-        fl: editableBalances.fl,
-        pl: editableBalances.pl,
-        ul: editableBalances.ul,
-      })
+      }))
     };
 
-    console.log("Submitting payload:", payload);
+    console.log("Submitting leave application:", payload);
 
     onSubmit && onSubmit(payload);
   };
@@ -357,20 +397,69 @@ const LeaveModal = ({
               </select>
             </div>
 
-            {/* Leaves In Hand Summary - From UserDetails */}
+            {/* ✅ UPDATED: Leaves In Hand with Toggle & Save */}
             {selectedUser && (
               <div className="mt-4">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-gray-800">Leaves In Hand (From User Details)</h4>
+                  <h4 className="font-semibold text-gray-800">Leaves In Hand</h4>
+                  
                   {mode === "edit" && (
-                    <span className="text-xs text-green-600 font-semibold">✏️ Editable in Edit Mode</span>
+                    <div className="flex items-center space-x-2">
+                      {/* Toggle Button */}
+                      <button
+                        onClick={toggleBalanceEditing}
+                        className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all text-sm font-medium ${
+                          balanceEditingEnabled 
+                            ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                        title={balanceEditingEnabled ? "Lock Editing" : "Enable Editing"}
+                      >
+                        {balanceEditingEnabled ? (
+                          <>
+                            <Unlock className="w-4 h-4" />
+                            <span>Lock</span>
+                          </>
+                        ) : (
+                          <>
+                            <Lock className="w-4 h-4" />
+                            <span>Unlock</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Save Button */}
+                      <button
+                        onClick={handleSaveBalances}
+                        disabled={!balancesChanged || !balanceEditingEnabled || savingBalances}
+                        className="flex items-center space-x-2 px-3 py-1.5 bg-green-500 text-white rounded-lg 
+                                   hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        title="Save Leaves In Hand"
+                      >
+                        <Save className="w-4 h-4" />
+                        <span>{savingBalances ? "Saving..." : "Save"}</span>
+                      </button>
+                    </div>
                   )}
                 </div>
+
+                {/* Balance Messages */}
+                {balanceError && (
+                  <div className="mb-3 p-2 bg-red-50 border-l-4 border-red-400 text-red-700 text-sm rounded">
+                    {balanceError}
+                  </div>
+                )}
+                
+                {balanceSuccess && (
+                  <div className="mb-3 p-2 bg-green-50 border-l-4 border-green-400 text-green-700 text-sm rounded">
+                    {balanceSuccess}
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-white p-3 rounded-lg text-center shadow-sm">
                     <p className="text-xs text-gray-600 mb-1">Floating (FL)</p>
-                    {mode === "edit" ? (
+                    {mode === "edit" && balanceEditingEnabled ? (
                       <input
                         type="number"
                         min="0"
@@ -380,12 +469,14 @@ const LeaveModal = ({
                         className="text-xl font-bold text-green-600 w-full text-center border-2 border-green-300 rounded px-2 py-1 focus:border-green-500 outline-none"
                       />
                     ) : (
-                      <p className="text-xl font-bold text-green-600">{availableLeaves.FL}</p>
+                      <p className="text-xl font-bold text-green-600">
+                        {mode === "edit" ? editableBalances.fl : availableLeaves.FL}
+                      </p>
                     )}
                   </div>
                   <div className="bg-white p-3 rounded-lg text-center shadow-sm">
                     <p className="text-xs text-gray-600 mb-1">Planned (PL)</p>
-                    {mode === "edit" ? (
+                    {mode === "edit" && balanceEditingEnabled ? (
                       <input
                         type="number"
                         min="0"
@@ -395,12 +486,14 @@ const LeaveModal = ({
                         className="text-xl font-bold text-blue-600 w-full text-center border-2 border-blue-300 rounded px-2 py-1 focus:border-blue-500 outline-none"
                       />
                     ) : (
-                      <p className="text-xl font-bold text-blue-600">{availableLeaves.PL}</p>
+                      <p className="text-xl font-bold text-blue-600">
+                        {mode === "edit" ? editableBalances.pl : availableLeaves.PL}
+                      </p>
                     )}
                   </div>
                   <div className="bg-white p-3 rounded-lg text-center shadow-sm">
                     <p className="text-xs text-gray-600 mb-1">Unplanned (UL)</p>
-                    {mode === "edit" ? (
+                    {mode === "edit" && balanceEditingEnabled ? (
                       <input
                         type="number"
                         min="0"
@@ -410,7 +503,9 @@ const LeaveModal = ({
                         className="text-xl font-bold text-orange-600 w-full text-center border-2 border-orange-300 rounded px-2 py-1 focus:border-orange-500 outline-none"
                       />
                     ) : (
-                      <p className="text-xl font-bold text-orange-600">{availableLeaves.UL}</p>
+                      <p className="text-xl font-bold text-orange-600">
+                        {mode === "edit" ? editableBalances.ul : availableLeaves.UL}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -505,7 +600,7 @@ const LeaveModal = ({
             })}
           </div>
 
-          {/* Summary - Total by Type */}
+          {/* Summary */}
           <div className="bg-gradient-to-r from-purple-50 to-cyan-50 p-4 rounded-xl">
             <h4 className="font-semibold text-gray-800 mb-3">Total Leaves Applied</h4>
             <div className="grid grid-cols-3 gap-4">

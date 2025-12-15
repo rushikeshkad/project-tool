@@ -6,9 +6,8 @@ const MyDetailsPage = ({
   formData,
   setFormData,
   handleSaveDetails,
-  handleEditMyDetails,
   loading,
-  setCurrentPage,
+  goBackToDashboard, // Use this callback instead of setCurrentPage
 }) => {
   return (
     <div className="animate-fadeIn">
@@ -156,10 +155,11 @@ const MyDetailsPage = ({
             <input
               type="number"
               value={formData.pl}
-              onChange={(e) => setFormData({ ...formData, pl: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, pl: parseFloat(e.target.value) || 0 })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter planned leave"
               min="0"
+              step="0.5"
             />
           </div>
 
@@ -170,10 +170,11 @@ const MyDetailsPage = ({
             <input
               type="number"
               value={formData.ul}
-              onChange={(e) => setFormData({ ...formData, ul: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, ul: parseFloat(e.target.value) || 0 })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter unplanned leave"
               min="0"
+              step="0.5"
             />
           </div>
 
@@ -184,10 +185,11 @@ const MyDetailsPage = ({
             <input
               type="number"
               value={formData.fl}
-              onChange={(e) => setFormData({ ...formData, fl: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, fl: parseFloat(e.target.value) || 0 })}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter floating leave"
               min="0"
+              step="0.5"
             />
           </div>
         </div>
@@ -208,8 +210,9 @@ const MyDetailsPage = ({
             )}
           </button>
           <button
-            onClick={() => setCurrentPage("dashboard")}
-            className="px-8 py-3 bg-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-400 transition-all duration-300"
+            onClick={goBackToDashboard}
+            disabled={loading}
+            className="px-8 py-3 bg-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-400 transition-all duration-300 disabled:opacity-50"
           >
             Cancel
           </button>
