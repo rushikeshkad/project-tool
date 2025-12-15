@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useEffect } from "react";
 import { authService, userDetailsService, leaveService } from "./api/apiService";
 
@@ -16,9 +15,6 @@ import MyDetailsPage from "./pages/MyDetailsPage";
 import AllUserDetailsPage from "./pages/AllUserDetailsPage.jsx";
 import AssetManagementPage from "./pages/AssetManagement.jsx";
 import AssetFormPage from "./pages/AssetFormPage.jsx";
-
-// NEW IMPORTS FOR ASSET MANAGEMENT
-
 
 const App = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -40,6 +36,9 @@ const App = () => {
     location: "",
     vdiPhysicalMachineLocation: "",
     hwfhPwfH: "",
+    pl: 0,
+    ul: 0,
+    fl: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -49,15 +48,7 @@ const App = () => {
   const [editUserEmail, setEditUserEmail] = useState("");
 
   // Leave records
-  const [selectedYear, setSelectedYear] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("");
   const [leaveRecords, setLeaveRecords] = useState([]);
-  const [editingLeaveId, setEditingLeaveId] = useState(null);
-  const [editingLeaveData, setEditingLeaveData] = useState({
-    name: "",
-    leaves: 0,
-    appliedLeaves: 0,
-  });
 
   // Auth form
   const [authForm, setAuthForm] = useState({
@@ -66,7 +57,6 @@ const App = () => {
     password: "",
     confirmPassword: "",
   });
-
 
   // Auto-login if session exists
   useEffect(() => {
@@ -81,34 +71,12 @@ const App = () => {
     }
   }, []);
 
-
   // Fetch user list when on All Users page
   useEffect(() => {
     if (isAuthenticated && currentPage === "all-details") {
       fetchAllUserDetails();
     }
   }, [isAuthenticated, currentPage]);
-
-
-  // Fetch leave records automatically
-  useEffect(() => {
-    if (!isAuthenticated || !selectedYear || !selectedMonth) return;
-
-    const fetchLeaves = async () => {
-      try {
-        setLoading(true);
-        const data = await leaveService.getByYearMonth(selectedYear, selectedMonth);
-        setLeaveRecords(data);
-      } catch (err) {
-        setError(err.response?.data?.message || err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLeaves();
-  }, [isAuthenticated, selectedYear, selectedMonth]);
-
 
   const fetchCurrentUserDetails = async (email) => {
     try {
@@ -128,13 +96,15 @@ const App = () => {
           location: data.location || "",
           vdiPhysicalMachineLocation: data.vdiPhysicalMachineLocation || "",
           hwfhPwfH: data.hwfhPwfH || "",
+          pl: data.pl || 0,
+          ul: data.ul || 0,
+          fl: data.fl || 0,
         });
       }
     } catch (err) {
       console.error("Error fetching user details:", err);
     }
   };
-
 
   const fetchAllUserDetails = async () => {
     try {
@@ -148,11 +118,22 @@ const App = () => {
     }
   };
 
-
   const handleAuth = async () => {
     if (!authForm.email || !authForm.password) {
       setError("Please fill in all required fields");
       return;
+    }
+
+    // Registration validation
+    if (!isLogin) {
+      if (!authForm.name) {
+        setError("Name is required for registration");
+        return;
+      }
+      if (authForm.password !== authForm.confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
     }
 
     try {
@@ -160,22 +141,50 @@ const App = () => {
       setError("");
 
       if (isLogin) {
+        // ✅ LOGIN - Use authService
+        console.log("Attempting login with:", authForm.email);
+        
         const response = await authService.login(authForm.email, authForm.password);
+        console.log("Login response:", response);
 
-        const userDetails = await userDetailsService.getByEmail(authForm.email);
-        if (userDetails) {
-          setUserName(userDetails.name);
-          sessionStorage.setItem("userName", userDetails.name);
+        // ✅ Store in session storage
+        sessionStorage.setItem("userEmail", authForm.email);
+        
+        // Fetch user details to get the name
+        try {
+          const userDetails = await userDetailsService.getByEmail(authForm.email);
+          if (userDetails && userDetails.name) {
+            setUserName(userDetails.name);
+            sessionStorage.setItem("userName", userDetails.name);
+          } else {
+            // Fallback to email if name not found
+            setUserName(authForm.email.split('@')[0]);
+            sessionStorage.setItem("userName", authForm.email.split('@')[0]);
+          }
+          setCurrentUserDetails(userDetails);
+        } catch (detailsErr) {
+          console.warn("Could not fetch user details:", detailsErr);
+          // Use email as fallback
+          setUserName(authForm.email.split('@')[0]);
+          sessionStorage.setItem("userName", authForm.email.split('@')[0]);
         }
 
-        sessionStorage.setItem("userEmail", response.email || authForm.email);
-        setUserEmail(response.email || authForm.email);
-
+        setUserEmail(authForm.email);
         setIsAuthenticated(true);
         setCurrentPage("dashboard");
-        fetchCurrentUserDetails(response.email || authForm.email);
+
+        // Clear auth form
+        setAuthForm({
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
 
       } else {
+        // ✅ REGISTRATION
+        console.log("Attempting registration with:", authForm.email);
+        
         await authService.register(
           authForm.name,
           authForm.email,
@@ -183,35 +192,70 @@ const App = () => {
           authForm.confirmPassword
         );
 
-        alert("Registration successful. Please login.");
+        alert("Registration successful! Please login with your credentials.");
         setIsLogin(true);
+        
+        // Clear form after successful registration
+        setAuthForm({
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      console.error("Auth error:", err);
+      setError(
+        err.response?.data?.message || 
+        err.message || 
+        "Authentication failed. Please check your credentials."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-
   const handleLogout = async () => {
-    await authService.logout();
+    try {
+      await authService.logout();
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    
+    // Clear session storage
+    sessionStorage.removeItem("userEmail");
+    sessionStorage.removeItem("userName");
     sessionStorage.clear();
+    
+    // Reset state
     setIsAuthenticated(false);
     setUserEmail("");
     setUserName("");
     setCurrentUserDetails(null);
     setAllUserDetails([]);
+    setCurrentPage("dashboard");
+    
+    // Clear auth form
+    setAuthForm({
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
   };
-
 
   const handleEditMyDetails = () => {
     if (currentUserDetails) {
-      setFormData(currentUserDetails);
+      setFormData({
+        ...currentUserDetails,
+        pl: currentUserDetails.pl || 0,
+        ul: currentUserDetails.ul || 0,
+        fl: currentUserDetails.fl || 0,
+      });
     }
+    setEditUserEmail("");
     setCurrentPage("add-edit");
   };
-
 
   const handleSaveDetails = async () => {
     if (!formData.name) {
@@ -221,42 +265,47 @@ const App = () => {
 
     try {
       setLoading(true);
+      setError("");
 
       const payload = { ...formData };
 
       if (editUserEmail && editUserEmail !== userEmail) {
+        // Admin editing another user
         await userDetailsService.updateAdmin(editUserEmail, payload);
+        fetchAllUserDetails();
       } else {
+        // User editing their own details
         await userDetailsService.updateSelf(payload);
+        fetchCurrentUserDetails(userEmail);
       }
 
-      fetchCurrentUserDetails(userEmail);
-      setCurrentPage("dashboard");
+      setCurrentPage(editUserEmail ? "all-details" : "dashboard");
       setEditUserEmail("");
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      console.error("Save details error:", err);
+      setError(err.response?.data?.message || err.message || "Failed to save details");
     } finally {
       setLoading(false);
     }
   };
 
-
   const handleDeleteUser = async (email) => {
-    if (!window.confirm("Delete user?")) return;
+    if (!window.confirm(`Are you sure you want to delete user: ${email}?`)) return;
 
     try {
       setLoading(true);
+      setError("");
       await userDetailsService.delete(email);
-      fetchAllUserDetails();
+      await fetchAllUserDetails();
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      console.error("Delete user error:", err);
+      setError(err.response?.data?.message || err.message || "Failed to delete user");
     } finally {
       setLoading(false);
     }
   };
 
-
-  // ❌ FIX: AuthScreen must show when NOT authenticated
+  // Show auth screen when NOT authenticated
   if (!isAuthenticated) {
     return (
       <AuthScreen
@@ -270,7 +319,6 @@ const App = () => {
       />
     );
   }
-
 
   // MAIN APPLICATION UI
   return (
@@ -306,7 +354,11 @@ const App = () => {
             )}
 
             {currentPage === "leave-records" && (
-              <LeaveRecordsPage leaveRecords={leaveRecords} setLeaveRecords={setLeaveRecords} />
+              <LeaveRecordsPage 
+                leaveRecords={leaveRecords} 
+                setLeaveRecords={setLeaveRecords}
+                userEmail={userEmail}
+              />
             )}
 
             {currentPage === "add-edit" && (
@@ -316,7 +368,14 @@ const App = () => {
                 setFormData={setFormData}
                 loading={loading}
                 handleSaveDetails={handleSaveDetails}
-                goBackToDashboard={() => setCurrentPage("dashboard")}
+                goBackToDashboard={() => {
+                  if (editUserEmail) {
+                    setCurrentPage("all-details");
+                  } else {
+                    setCurrentPage("dashboard");
+                  }
+                  setEditUserEmail("");
+                }}
               />
             )}
 
@@ -327,14 +386,28 @@ const App = () => {
                 userEmail={userEmail}
                 handleEditAllDetails={(user) => {
                   setEditUserEmail(user.email);
-                  setFormData(user);
+                  setFormData({
+                    name: user.name || "",
+                    empId: user.empId || "",
+                    machineIpAddress: user.machineIpAddress || "",
+                    deviceHostName: user.deviceHostName || "",
+                    clientVpnUsername: user.clientVpnUsername || "",
+                    assetId: user.assetId || "",
+                    contactNo: user.contactNo || "",
+                    bitLockerPassword: user.bitLockerPassword || "",
+                    location: user.location || "",
+                    vdiPhysicalMachineLocation: user.vdiPhysicalMachineLocation || "",
+                    hwfhPwfH: user.hwfhPwfH || "",
+                    pl: user.pl || 0,
+                    ul: user.ul || 0,
+                    fl: user.fl || 0,
+                  });
                   setCurrentPage("add-edit");
                 }}
                 handleDeleteUser={handleDeleteUser}
               />
             )}
 
-            {/* ✅ NEW ASSET MANAGEMENT PAGES */}
             {currentPage === "asset-management" && (
               <AssetManagementPage setCurrentPage={setCurrentPage} />
             )}

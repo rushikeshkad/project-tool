@@ -1,6 +1,5 @@
-// src/pages/AssetFormPage.jsx
 import React, { useEffect, useState } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 import { assetService } from "../api/apiService";
 
 const AssetCategory = {
@@ -25,8 +24,8 @@ const AssetFormPage = ({ setCurrentPage }) => {
   const [editingAsset, setEditingAsset] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  // Load editing asset from sessionStorage (if any)
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem("editingAsset");
@@ -69,6 +68,7 @@ const AssetFormPage = ({ setCurrentPage }) => {
     }
 
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     const payload = {
@@ -80,18 +80,22 @@ const AssetFormPage = ({ setCurrentPage }) => {
     };
 
     try {
-      if (
-        editingAsset &&
-        editingAsset.id !== undefined &&
-        editingAsset.id !== null
-      ) {
+      if (editingAsset && editingAsset.id !== undefined && editingAsset.id !== null) {
+        // UPDATE existing asset
         await assetService.update(editingAsset.id, payload);
+        setSuccessMessage("Asset Updated Successfully!");
       } else {
+        // CREATE new asset
         await assetService.create(payload);
+        setSuccessMessage("Asset Added Successfully!");
       }
 
-      resetForm();
-      setCurrentPage("assets");
+      // Show success message for 2 seconds then redirect
+      setTimeout(() => {
+        resetForm();
+        setCurrentPage("asset-management");
+      }, 2000);
+
     } catch (err) {
       console.error("Failed to save asset:", err);
       setError(
@@ -102,15 +106,28 @@ const AssetFormPage = ({ setCurrentPage }) => {
     }
   };
 
+  const handleCancel = () => {
+    resetForm();
+    setCurrentPage("asset-management");
+  };
+
   return (
     <div className="animate-fadeIn">
       <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">
         {editingAsset ? "Edit Asset" : "Add New Asset"}
       </h1>
 
+      {/* Error Message */}
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
           {error}
+        </div>
+      )}
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm font-semibold">
+          ✓ {successMessage}
         </div>
       )}
 
@@ -128,6 +145,7 @@ const AssetFormPage = ({ setCurrentPage }) => {
               }
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter asset name"
+              disabled={loading}
             />
           </div>
 
@@ -141,6 +159,7 @@ const AssetFormPage = ({ setCurrentPage }) => {
                 setAssetForm({ ...assetForm, category: Number(e.target.value) })
               }
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+              disabled={loading}
             >
               <option value={AssetCategory.PhysicalMachine}>
                 Physical Machine
@@ -159,6 +178,7 @@ const AssetFormPage = ({ setCurrentPage }) => {
                 setAssetForm({ ...assetForm, type: Number(e.target.value) })
               }
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
+              disabled={loading}
             >
               <option value={AssetType.Hardware}>Hardware</option>
               <option value={AssetType.Software}>Software</option>
@@ -180,6 +200,7 @@ const AssetFormPage = ({ setCurrentPage }) => {
               }
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="e.g., v2.0.1"
+              disabled={loading}
             />
           </div>
 
@@ -198,6 +219,7 @@ const AssetFormPage = ({ setCurrentPage }) => {
               rows={4}
               className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-purple-500 rounded-xl outline-none transition-all duration-300"
               placeholder="Enter detailed specifications..."
+              disabled={loading}
             />
           </div>
         </div>
@@ -212,18 +234,16 @@ const AssetFormPage = ({ setCurrentPage }) => {
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
-                <Plus className="w-5 h-5" />
+                <Save className="w-5 h-5" />
                 <span>{editingAsset ? "Update" : "Save"} Asset</span>
               </>
             )}
           </button>
 
           <button
-            onClick={() => {
-              resetForm();
-              setCurrentPage("asset-management"); // ← Redirect to AssetManagement.jsx
-            }}
-            className="px-8 py-3 bg-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-400 transition-all duration-300"
+            onClick={handleCancel}
+            disabled={loading}
+            className="px-8 py-3 bg-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-400 transition-all duration-300 disabled:opacity-50"
           >
             Cancel
           </button>

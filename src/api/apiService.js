@@ -1,11 +1,8 @@
-//Adjust the endpoint paths (/auth/login, /userdetails, /leaves, etc.) to match your actual backend
-
-// src/api/apiService.js
 import api from "./apiConfig";
 
 // ---------- AUTH ----------
 export const authService = {
-  login: async (email, password) => {
+  async login(email, password) {
     const response = await api.post('/auth/login', {
       email,
       password
@@ -13,8 +10,8 @@ export const authService = {
     return response.data;
   },
 
- async register(name, email, password, confirmPassword) {
-    const response = await api.post("/Auth/register", {
+  async register(name, email, password, confirmPassword) {
+    const response = await api.post("/auth/register", {
       name,
       email,
       password,
@@ -24,7 +21,11 @@ export const authService = {
   },
 
   async logout() {
-    await api.post("/auth/logout");
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.warn("Logout request failed:", err);
+    }
   },
 };
 
@@ -65,28 +66,75 @@ export const userDetailsService = {
 export const leaveService = {
   async getByYearMonth(year, month) {
     const response = await api.get("/LeavePlan", {
-      params: { year, month },
+      params: { 
+        month: `${month}`, 
+        year: `${year}`
+      },
     });
     return response.data;
   },
 
   async applyLeave(payload) {
+    // Handle multiple leave entries - send each separately
+    if (payload.leaveEntries && Array.isArray(payload.leaveEntries)) {
+      const promises = payload.leaveEntries.map(entry => 
+        api.post("/LeavePlan/apply", {
+          email: payload.email,
+          dateFrom: entry.dateFrom,
+          dateTo: entry.dateTo,
+          breakdowns: entry.breakdowns
+        })
+      );
+      
+      const responses = await Promise.all(promises);
+      return responses[responses.length - 1].data; // Return last response
+    }
+    
+    // Single entry format (backward compatibility)
     const response = await api.post("/LeavePlan/apply", payload);
     return response.data;
   },
 
-  async update(userId, payload) {
-    const response = await api.put(`/LeavePlan/${userId}`, payload);
+  async update(email, payload) {
+    // For update, send updated leave balances
+    const updatePayload = {
+      email: payload.email,
+      leavesInHandFL: payload.leavesInHandFL,
+      leavesInHandPL: payload.leavesInHandPL,
+      leavesInHandUL: payload.leavesInHandUL,
+    };
+    
+    // If there are new leave entries, apply them
+    if (payload.leaveEntries && Array.isArray(payload.leaveEntries)) {
+      // First update balances
+      await api.put(`/LeavePlan/${encodeURIComponent(email)}`, updatePayload);
+      
+      // Then apply new leave entries if any
+      const applyPromises = payload.leaveEntries.map(entry => 
+        api.post("/LeavePlan/apply", {
+          email: payload.email,
+          dateFrom: entry.dateFrom,
+          dateTo: entry.dateTo,
+          breakdowns: entry.breakdowns
+        })
+      );
+      
+      const responses = await Promise.all(applyPromises);
+      return responses[responses.length - 1].data;
+    }
+    
+    const response = await api.put(`/LeavePlan/${encodeURIComponent(email)}`, updatePayload);
     return response.data;
   },
 
-  async delete(userId, year, month) {
-    const response = await api.delete(`/LeavePlan/${userId}`, {
+  async delete(email, year, month) {
+    const response = await api.delete(`/LeavePlan/${encodeURIComponent(email)}`, {
       params: { year, month },
     });
     return response.data;
   },
 };
+
 // ---------- ASSET SERVICE ----------
 export const assetService = {
   async getAll() {
@@ -114,4 +162,3 @@ export const assetService = {
     return response.data;
   },
 };
-

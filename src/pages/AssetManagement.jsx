@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Package, Loader2, Plus, HardDrive, Code, Edit2, Trash2 } from "lucide-react";
-import { assetService } from "../api/apiService"; // adjust path if needed
+import { assetService } from "../api/apiService";
 
 const AssetCategory = {
   PhysicalMachine: 1,
@@ -13,8 +13,8 @@ const AssetType = {
 };
 
 const AssetManagementPage = ({ setCurrentPage }) => {
-  const [assets, setAssets] = useState([]); // always an array
-  const [filteredAssets, setFilteredAssets] = useState([]); // always an array
+  const [assets, setAssets] = useState([]);
+  const [filteredAssets, setFilteredAssets] = useState([]);
   const [filterType, setFilterType] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
   const [loading, setLoading] = useState(false);
@@ -22,12 +22,10 @@ const AssetManagementPage = ({ setCurrentPage }) => {
 
   useEffect(() => {
     fetchAssets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     applyFilters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assets, filterType, filterCategory]);
 
   const fetchAssets = async () => {
@@ -35,23 +33,18 @@ const AssetManagementPage = ({ setCurrentPage }) => {
       setLoading(true);
       setError("");
       const data = await assetService.getAll();
-
-      // DEBUG: log what the API returned (helps track down undefined)
       console.debug("assetService.getAll() =>", data);
-
-      // ensure we only set arrays to state
       setAssets(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch assets:", err);
       setError(err?.response?.data?.message || err?.message || "Failed to fetch assets");
-      setAssets([]); // defensive
+      setAssets([]);
     } finally {
       setLoading(false);
     }
   };
 
   const applyFilters = () => {
-    // defensive: ensure assets is an array
     const safeAssets = Array.isArray(assets) ? assets : [];
     const f = safeAssets.filter((asset) => {
       const matchesType = filterType === "all" || asset?.type === Number(filterType);
@@ -72,10 +65,17 @@ const AssetManagementPage = ({ setCurrentPage }) => {
 
   const handleDeleteAsset = async (id) => {
     if (!window.confirm("Are you sure you want to delete this asset?")) return;
+    
     try {
       setLoading(true);
+      setError("");
+      
+      // Fixed: Proper delete call
       await assetService.delete(id);
+      
+      // Refresh the list after successful delete
       await fetchAssets();
+      
     } catch (err) {
       console.error("Failed to delete asset:", err);
       setError(err?.response?.data?.message || err?.message || "Failed to delete asset");
@@ -94,7 +94,6 @@ const AssetManagementPage = ({ setCurrentPage }) => {
 
   const getTypeLabel = (type) => (type === AssetType.Hardware ? "Hardware" : "Software");
 
-  // render guard: ensure filteredAssets is array
   const safeFiltered = Array.isArray(filteredAssets) ? filteredAssets : [];
   const safeAssetsLen = Array.isArray(assets) ? assets.length : 0;
 
@@ -113,20 +112,46 @@ const AssetManagementPage = ({ setCurrentPage }) => {
         </button>
       </div>
 
-      <div className="filters" style={{ display: "flex", gap: 10, margin: "15px 0" }}>
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="form-select">
-          <option value="all">All Types</option>
-          <option value="1">Hardware</option>
-          <option value="2">Software</option>
-        </select>
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg">
+          <p className="font-medium">Error</p>
+          <p className="text-sm mt-1">{error}</p>
+        </div>
+      )}
 
-        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="form-select">
-          <option value="all">All Categories</option>
-          <option value="1">Physical Machine</option>
-          <option value="2">Client VDI</option>
-        </select>
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-md p-4 mb-6">
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Type</label>
+            <select 
+              value={filterType} 
+              onChange={(e) => setFilterType(e.target.value)} 
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 outline-none"
+            >
+              <option value="all">All Types</option>
+              <option value="1">Hardware</option>
+              <option value="2">Software</option>
+            </select>
+          </div>
+
+          <div className="flex-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Category</label>
+            <select 
+              value={filterCategory} 
+              onChange={(e) => setFilterCategory(e.target.value)} 
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 outline-none"
+            >
+              <option value="all">All Categories</option>
+              <option value="1">Physical Machine</option>
+              <option value="2">Client VDI</option>
+            </select>
+          </div>
+        </div>
       </div>
 
+      {/* Assets Table */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
@@ -194,10 +219,20 @@ const AssetManagementPage = ({ setCurrentPage }) => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center space-x-2">
-                        <button onClick={() => handleEditAsset(asset)} className="p-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors" title="Edit">
+                        <button 
+                          onClick={() => handleEditAsset(asset)} 
+                          className="p-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors" 
+                          title="Edit"
+                          disabled={loading}
+                        >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDeleteAsset(asset?.id)} className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors" title="Delete">
+                        <button 
+                          onClick={() => handleDeleteAsset(asset?.id)} 
+                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50" 
+                          title="Delete"
+                          disabled={loading}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

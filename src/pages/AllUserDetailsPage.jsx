@@ -1,6 +1,5 @@
-// src/pages/AllUserDetailsPage.jsx
 import React from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Edit2 } from "lucide-react";
 
 const AllUserDetailsPage = ({
   allUserDetails,
@@ -34,8 +33,7 @@ const AllUserDetailsPage = ({
                   <th className="px-6 py-4 text-left font-semibold">IP Address</th>
                   <th className="px-6 py-4 text-left font-semibold">Location</th>
                   <th className="px-6 py-4 text-left font-semibold">Work Mode</th>
-                  <th className="px-6 py-4 text-center font-semibold">Edit</th>
-                  <th className="px-6 py-4 text-center font-semibold">Delete</th>
+                  <th className="px-6 py-4 text-center font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -82,26 +80,10 @@ const AllUserDetailsPage = ({
                           onClick={() => handleEditAllDetails(user)}
                           className="p-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition-colors"
                           title="Edit"
+                          disabled={loading}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5h2m-1-1v2m-1 8h2m-1-1v2m-1-8h2m-1-1v2M4 17v2h2l11-11c.78-.78.78-2.05 0-2.83l-1.17-1.17c-.78-.78-2.05-.78-2.83 0L4 14z"
-                            />
-                          </svg>
+                          <Edit2 className="w-4 h-4" />
                         </button>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center space-x-2">
                         <button
                           onClick={() => handleDeleteUser(user.email)}
                           disabled={loading || user.email === userEmail}
