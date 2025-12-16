@@ -101,8 +101,8 @@ export const leaveService = {
     return response.data;
   },
 
-  async update(email, payload) {
-    // For update, we need to handle both balance updates and new leave entries
+    // Update leave plan - PUT /api/LeavePlan/{id}
+  async update(id, payload) {
     const updatePayload = {
       email: payload.email,
       leavesInHandFL: payload.leavesInHandFL,
@@ -110,9 +110,11 @@ export const leaveService = {
       leavesInHandUL: payload.leavesInHandUL,
     };
     
+    // If there are new leave entries to add, handle them
     if (payload.leaveEntries && Array.isArray(payload.leaveEntries)) {
-      await api.put(`/LeavePlan/${encodeURIComponent(email)}`, updatePayload);
+      await api.put(`/LeavePlan/${id}`, updatePayload);
       
+      // Apply new leave entries
       const applyPromises = payload.leaveEntries.map(entry => 
         api.post("/LeavePlan/apply", {
           email: payload.email,
@@ -126,16 +128,17 @@ export const leaveService = {
       return responses[responses.length - 1].data;
     }
     
-    const response = await api.put(`/LeavePlan/${encodeURIComponent(email)}`, updatePayload);
+    // Update only the leave balances
+    const response = await api.put(`/LeavePlan/${id}`, updatePayload);
     return response.data;
   },
 
-  async delete(email, year, month) {
-    const response = await api.delete(`/LeavePlan/${encodeURIComponent(email)}`, {
-      params: { year, month },
-    });
+  // Delete leave plan - DELETE /api/LeavePlan/{id}
+  async delete(id) {
+    const response = await api.delete(`/LeavePlan/${id}`);
     return response.data;
   },
+  
 };
 
 // ---------- ASSET SERVICE ----------

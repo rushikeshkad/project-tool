@@ -169,22 +169,52 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords, userEmail }) => {
     setModalError("");
   };
 
-  const handleSubmitLeaveModal = async (payload) => {
-    if (!payload) return;
+  const handleSubmitLeaveModal = async (leaveEntries) => {
+    if (!leaveEntries || !Array.isArray(leaveEntries) || leaveEntries.length === 0) {
+      setModalError("No leave entries to process");
+      return;
+    }
 
-    console.log("Submitting payload:", payload);
+    console.log("Submitting leave entries:", leaveEntries);
 
     try {
       setModalSaving(true);
       setModalError("");
 
-      if (modalMode === "apply") {
-        await leaveService.applyLeave(payload);
-      } else {
-        if (!payload.email) {
+      if (modalMode === "edit" && activeRecord) {
+        // Edit mode: delete all existing entries for this user and month, then create new ones
+        const userEmail = leaveEntries[0].email;
+        
+        if (!userEmail) {
           throw new Error("Email is required for updating leave records");
         }
-        await leaveService.update(payload.email, payload);
+
+        // First, delete all existing leave records for this user
+        console.log(`Deleting existing records for ${userEmail}`);
+        if (activeRecord.leaveEntries && Array.isArray(activeRecord.leaveEntries)) {
+          for (const entry of activeRecord.leaveEntries) {
+            if (entry.id) {
+              try {
+                console.log("Deleting leave entry with ID:", entry.id);
+                await leaveService.delete(entry.id);
+              } catch (deleteErr) {
+                console.warn("Delete operation failed for entry:", entry.id, deleteErr);
+              }
+            }
+          }
+        }
+
+        // Then, create all new entries
+        for (const entry of leaveEntries) {
+          console.log("Creating updated leave entry:", entry);
+          await leaveService.applyLeave(entry);
+        }
+      } else {
+        // Apply mode: create new leave entries
+        for (const entry of leaveEntries) {
+          console.log("Creating leave entry:", entry);
+          await leaveService.applyLeave(entry);
+        }
       }
       
       await refreshLeaves();
@@ -211,8 +241,18 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords, userEmail }) => {
       setListSaving(true);
       setFetchError("");
       
-      // Delete by email
-      await leaveService.delete(user.email, year, month);
+      console.log("Deleting leave records for user:", user);
+      
+      // Delete all leave entries for this user in this month
+      if (user.leaveEntries && Array.isArray(user.leaveEntries)) {
+        for (const entry of user.leaveEntries) {
+          if (entry.id) {
+            console.log("Deleting leave entry with ID:", entry.id);
+            await leaveService.delete(entry.id);
+          }
+        }
+      }
+      
       await refreshLeaves();
       
     } catch (err) {
@@ -302,7 +342,6 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords, userEmail }) => {
                       <th className="px-6 py-4 text-left font-semibold">Leave Breakdown</th>
                       <th className="px-6 py-4 text-left font-semibold">Date Range</th>
                       <th className="px-6 py-4 text-left font-semibold">Leaves In Hand</th>
-                      <th className="px-6 py-4 text-center font-semibold">Actions</th>
                     </tr>
                   </thead>
 
@@ -333,7 +372,7 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords, userEmail }) => {
                             </div>
                           </td>
 
-                          {/* Leave Breakdown Column - Multiple Internal Rows */}
+                          {/* Leave Breakdown Column */}
                           <td className="px-6 py-4 align-top">
                             <div className="space-y-2">
                               {typeTotals.FL > 0 && (
@@ -366,15 +405,36 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords, userEmail }) => {
                             </div>
                           </td>
 
-                          {/* Date Range Column - Multiple Internal Rows */}
+                          {/* Date Range Column with Action Buttons */}
                           <td className="px-6 py-4 align-top">
                             <div className="space-y-2">
                               {user.leaveEntries.map((entry, entryIdx) => (
-                                <div key={entryIdx} className="text-sm text-gray-700 bg-gray-100 px-3 py-2 rounded-lg font-medium">
-                                  {formatDateRange(entry.dateFrom, entry.dateTo)}
-                                  <span className="ml-2 text-xs text-gray-500">
-                                    ({entry.totalDays || 0} days)
-                                  </span>
+                                <div key={entryIdx} className="flex items-center justify-between bg-gray-100 px-3 py-2 rounded-lg">
+                                  <div className="text-sm text-gray-700 font-medium">
+                                    {formatDateRange(entry.dateFrom, entry.dateTo)}
+                                    <span className="ml-2 text-xs text-gray-500">
+                                      ({entry.totalDays || 0} days)
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center space-x-2 ml-4">
+                                    <button
+                                      className="p-1.5 bg-purple-500 text-white rounded-md hover:bg-purple-600 
+                                                 transition-colors shadow-sm hover:shadow-md"
+                                      onClick={() => handleEditClick(user)}
+                                      title="Edit"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      className="p-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 
+                                                 transition-colors shadow-sm hover:shadow-md disabled:opacity-50"
+                                      onClick={() => handleDeleteClick(user)}
+                                      disabled={listSaving}
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -401,32 +461,6 @@ const LeaveRecordsPage = ({ leaveRecords, setLeaveRecords, userEmail }) => {
                                   {user.leavesInHandUL}
                                 </span>
                               </div>
-                            </div>
-                          </td>
-
-                          {/* Actions Column */}
-                          <td className="px-6 py-4 text-center align-top">
-                            <div className="flex flex-col items-center space-y-2">
-                              <button
-                                className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 
-                                           transition-colors shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
-                                onClick={() => handleEditClick(user)}
-                                title="Edit Leave Records"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                                <span className="text-sm font-semibold">Edit</span>
-                              </button>
-                              <button
-                                className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 
-                                           transition-colors shadow-md hover:shadow-lg disabled:opacity-50 
-                                           flex items-center justify-center space-x-2"
-                                onClick={() => handleDeleteClick(user)}
-                                disabled={listSaving}
-                                title="Delete All Leaves"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                <span className="text-sm font-semibold">Delete</span>
-                              </button>
                             </div>
                           </td>
                         </tr>
